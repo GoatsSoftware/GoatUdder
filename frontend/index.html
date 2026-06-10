@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoatUdder - Location de Pads de Chèvres</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🐐 GoatUdder</h1>
+            <nav>
+                <ul>
+                    <li><a href="#home">Accueil</a></li>
+                    <li><a href="#pads">Pads Disponibles</a></li>
+                    <li><a href="#bookings">Mes Réservations</a></li>
+                    <li><a href="#about">À Propos</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="hero">
+            <div class="container">
+                <h2>Bienvenue sur GoatUdder</h2>
+                <p>La plateforme de location de pads de chèvres. Trouvez le pad parfait pour vos chèvres!</p>
+                <button id="browsePadsBtn" class="btn-primary">Explorer les Pads</button>
+            </div>
+        </section>
+
+        <!-- Pads Section -->
+        <section id="pads" class="pads-section">
+            <div class="container">
+                <h2>Pads Disponibles</h2>
+                <div id="padsLoading" class="loading">Chargement des pads...</div>
+                <div id="padsList" class="pads-grid"></div>
+            </div>
+        </section>
+
+        <!-- Booking Section -->
+        <section id="bookings" class="bookings-section">
+            <div class="container">
+                <h2>Mes Réservations</h2>
+                <div id="bookingsLoading" class="loading">Chargement des réservations...</div>
+                <div id="bookingsList" class="bookings-list"></div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <h2>À Propos</h2>
+                <p>GoatUdder est une application développée pour simplifier la location de pads de chèvres. Notre plateforme permet aux éleveurs de trouver facilement des pads disponibles, de réserver et de gérer leurs reservations en ligne.</p>
+                <div class="features">
+                    <div class="feature">
+                        <h3>🏞️ Pads de Qualité</h3>
+                        <p>Des pads soigneusement sélectionnés pour le bien-être de vos chèvres.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>📅 Réservation Facile</h3>
+                        <p>Réservez en quelques clics depuis votre navigateur.</p>
+                    </div>
+                    <div class="feature">
+                        <h3>💳 Paiement Sécurisé</h3>
+                        <p>Paiements sécurisés avec multiple méthodes de paiement.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Réserver un Pad</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="padName">Pad:</label>
+                    <input type="text" id="padName" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Date de Début:</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">Date de Fin:</label>
+                    <input type="date" id="endDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Méthode de Paiement:</label>
+                    <select id="paymentMethod" required>
+                        <option value="credit_card">Carte de Crédit</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="bank_transfer">Virement Bancaire</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="totalPrice">Prix Total:</label>
+                    <input type="text" id="totalPrice" readonly>
+                </div>
+                <button type="submit" class="btn-primary">Confirmer la Réservation</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Registration Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Créer un Compte</h2>
+            <form id="userForm">
+                <div class="form-group">
+                    <label for="userName">Nom:</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label for="userEmail">Email:</label>
+                    <input type="email" id="userEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="userPhone">Téléphone:</label>
+                    <input type="tel" id="userPhone" required>
+                </div>
+                <button type="submit" class="btn-primary">S'inscrire</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 GoatUdder. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

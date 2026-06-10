@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: goatudder-postgres
+    environment:
+      POSTGRES_DB: goatudder
+      POSTGRES_USER: goatudder
+      POSTGRES_PASSWORD: goatudder
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U goatudder"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  goat-udder-api:
+    build:
+      context: ./goat-udder-api
+      dockerfile: Dockerfile
+    container_name: goatudder-api
+    ports:
+      - "8000:8000"
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: goatudder
+      DB_USER: goatudder
+      DB_PASSWORD: goatudder
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  goat-udder-booking:
+    build:
+      context: ./goat-udder-booking
+      dockerfile: Dockerfile
+    container_name: goatudder-booking
+    ports:
+      - "8001:8001"
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: goatudder
+      DB_USER: goatudder
+      DB_PASSWORD: goatudder
+      SMTP_HOST: smtp
+      SMTP_PORT: 1025
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  smtp:
+    image: mailhog/mailhog
+    container_name: goatudder-smtp
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  postgres_data:
