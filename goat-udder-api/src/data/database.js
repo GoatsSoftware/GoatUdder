@@ -1,8 +1,10 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+const { Pool } = require("pg");
+require("dotenv").config();
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://goat:goat@localhost:5432/goatudder',
+  connectionString:
+    process.env.DATABASE_URL ||
+    `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
 });
 
 // Execute a query and return results
@@ -80,9 +82,9 @@ async function initializeDatabase() {
       );
     `);
 
-    console.log('Database initialized successfully');
+    console.log("Database initialized successfully");
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error("Database initialization error:", error);
   }
 }
 
