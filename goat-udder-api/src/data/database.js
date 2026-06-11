@@ -22,7 +22,7 @@ async function query(text, params) {
 async function initializeDatabase() {
   try {
     await query(`
-      CREATE TABLE IF NOT EXISTS pads (
+      CREATE TABLE IF NOT EXISTS udder (
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         location VARCHAR(200) NOT NULL,
@@ -48,7 +48,7 @@ async function initializeDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS bookings (
         id SERIAL PRIMARY KEY,
-        pad_id INT REFERENCES pads(id),
+        pad_id INT REFERENCES udder(id),
         user_id INT REFERENCES users(id),
         start_date DATE NOT NULL,
         end_date DATE NOT NULL,
@@ -61,7 +61,7 @@ async function initializeDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS goats (
         id SERIAL PRIMARY KEY,
-        pad_id INT REFERENCES pads(id),
+        pad_id INT REFERENCES udder(id),
         name VARCHAR(50) NOT NULL,
         breed VARCHAR(50) NOT NULL,
         age INT,
@@ -74,7 +74,7 @@ async function initializeDatabase() {
     await query(`
       CREATE TABLE IF NOT EXISTS reviews (
         id SERIAL PRIMARY KEY,
-        pad_id INT REFERENCES pads(id),
+        pad_id INT REFERENCES udder(id),
         user_id INT REFERENCES users(id),
         rating INT CHECK (rating >= 1 AND rating <= 5),
         comment TEXT,

@@ -82,11 +82,11 @@ class BookingController {
     }
   }
 
-  // GET /api/bookings/pad/:padId - Get bookings by pad ID
-  async getBookingsByPadId(req, res) {
+  // GET /api/bookings/udder/:udderId - Get bookings by udder ID
+  async getBookingsByUdderId(req, res) {
     try {
-      const padId = parseInt(req.params.padId);
-      const bookings = await this.service.getBookingsByPadId(padId);
+      const udderId = parseInt(req.params.udderId);
+      const bookings = await this.service.getBookingsByUdderId(udderId);
       res.json({
         success: true,
         data: bookings,
@@ -197,7 +197,7 @@ class BookingController {
       await this.service.deleteBooking(id);
       res.json({
         success: true,
-        message: 'Booking deleted successfully'
+        message: 'Réservation supprimée avec succès'
       });
     } catch (error) {
       if (error.message.includes('not found')) {

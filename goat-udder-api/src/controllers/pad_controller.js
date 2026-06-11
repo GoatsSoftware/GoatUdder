@@ -1,87 +1,87 @@
-const PadService = require('../services/pad_service');
+const PadService = require("../services/pad_service");
 
-// Pad Controller - REST API handlers for pads
+// Pad Controller - REST API handlers for udder
 class PadController {
   constructor() {
     this.service = new PadService();
   }
 
-  // GET /api/pads - Get all pads
+  // GET /api/udder - Get all udder
   async getAllPads(req, res) {
     try {
-      const pads = await this.service.getAllPads();
+      const udder = await this.service.getAllPads();
       res.json({
         success: true,
-        data: pads,
-        count: pads.length
+        data: udder,
+        count: udder.length,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
 
-  // GET /api/pads/available - Get available pads
+  // GET /api/udder/available - Get available udder
   async getAvailablePads(req, res) {
     try {
-      const pads = await this.service.getAvailablePads();
+      const udder = await this.service.getAvailablePads();
       res.json({
         success: true,
-        data: pads,
-        count: pads.length
+        data: udder,
+        count: udder.length,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
 
-  // GET /api/pads/:id - Get pad by ID
+  // GET /api/udder/:id - Get pad by ID
   async getPadById(req, res) {
     try {
       const id = parseInt(req.params.id);
       const pad = await this.service.getPadById(id);
       res.json({
         success: true,
-        data: pad
+        data: pad,
       });
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error.message.includes("not found")) {
         res.status(404).json({
           success: false,
-          error: error.message
+          error: error.message,
         });
       } else {
         res.status(400).json({
           success: false,
-          error: error.message
+          error: error.message,
         });
       }
     }
   }
 
-  // POST /api/pads - Create a new pad
+  // POST /api/udder - Create a new pad
   async createPad(req, res) {
     try {
       const padData = req.body;
       const pad = await this.service.createPad(padData);
       res.status(201).json({
         success: true,
-        data: pad
+        data: pad,
       });
     } catch (error) {
       res.status(400).json({
         success: false,
-        error: error.message
+        error: error.message,
       });
     }
   }
 
-  // PUT /api/pads/:id - Update a pad
+  // PUT /api/udder/:id - Update a pad
   async updatePad(req, res) {
     try {
       const id = parseInt(req.params.id);
@@ -89,42 +89,42 @@ class PadController {
       const pad = await this.service.updatePad(id, padData);
       res.json({
         success: true,
-        data: pad
+        data: pad,
       });
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error.message.includes("not found")) {
         res.status(404).json({
           success: false,
-          error: error.message
+          error: error.message,
         });
       } else {
         res.status(400).json({
           success: false,
-          error: error.message
+          error: error.message,
         });
       }
     }
   }
 
-  // DELETE /api/pads/:id - Delete a pad
+  // DELETE /api/udder/:id - Delete a pad
   async deletePad(req, res) {
     try {
       const id = parseInt(req.params.id);
       await this.service.deletePad(id);
       res.json({
         success: true,
-        message: 'Pad deleted successfully'
+        message: "Pad deleted successfully",
       });
     } catch (error) {
-      if (error.message.includes('not found')) {
+      if (error.message.includes("not found")) {
         res.status(404).json({
           success: false,
-          error: error.message
+          error: error.message,
         });
       } else {
         res.status(400).json({
           success: false,
-          error: error.message
+          error: error.message,
         });
       }
     }

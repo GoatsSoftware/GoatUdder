@@ -1,15 +1,15 @@
-const { query } = require('../database');
+const { query } = require("../database");
 
 // Booking Repository - Database operations for bookings
 class BookingRepository {
   // Get all bookings
   async findAll() {
     const result = await query(`
-      SELECT b.*, p.name as pad_name, p.location as pad_location, 
-              u.username as user_name
-      FROM bookings b
-      JOIN pads p ON b.pad_id = p.id
-      JOIN users u ON b.user_id = u.id
+      SELECT b.*, p.name as udder_name, p.location as udder_location, 
+               u.username as user_name
+       FROM bookings b
+       JOIN udder p ON b.udder_id = p.id
+       JOIN users u ON b.user_id = u.id
       ORDER BY b.created_at DESC
     `);
     return result.rows;
@@ -17,55 +17,68 @@ class BookingRepository {
 
   // Get booking by ID
   async findById(id) {
-    const result = await query(`
-      SELECT b.*, p.name as pad_name, p.location as pad_location, 
-              p.price_per_day, p.capacity, p.status as pad_status,
-              u.username as user_name, u.email as user_email
-      FROM bookings b
-      JOIN pads p ON b.pad_id = p.id
-      JOIN users u ON b.user_id = u.id
+    const result = await query(
+      `
+      SELECT b.*, p.name as udder_name, p.location as udder_location, 
+               p.price_per_day, p.capacity, p.status as udder_status,
+               u.username as user_name, u.email as user_email
+       FROM bookings b
+       JOIN udder p ON b.udder_id = p.id
+       JOIN users u ON b.user_id = u.id
       WHERE b.id = $1
-    `, [id]);
+    `,
+      [id],
+    );
     return result.rows[0] || null;
   }
 
   // Get bookings by user ID
   async findByUserId(userId) {
-    const result = await query(`
-      SELECT b.*, p.name as pad_name, p.location as pad_location, 
-              p.price_per_day, p.status as pad_status
-      FROM bookings b
-      JOIN pads p ON b.pad_id = p.id
-      WHERE b.user_id = $1
+    const result = await query(
+      `
+      SELECT b.*, p.name as udder_name, p.location as udder_location, 
+               p.price_per_day, p.status as udder_status
+       FROM bookings b
+       JOIN udder p ON b.udder_id = p.id
+       WHERE b.user_id = $1
       ORDER BY b.created_at DESC
-    `, [userId]);
+    `,
+      [userId],
+    );
     return result.rows;
   }
 
-  // Get bookings by pad ID
-  async findByPadId(padId) {
-    const result = await query(`
+  // Get bookings by udder ID
+  async findByUdderId(udderId) {
+    const result = await query(
+      `
       SELECT b.*, u.username as user_name
       FROM bookings b
       JOIN users u ON b.user_id = u.id
-      WHERE b.pad_id = $1
+      WHERE b.udder_id = $1
       ORDER BY b.created_at DESC
-    `, [padId]);
+    `,
+      [udderId],
+    );
     return result.rows;
   }
 
   // Get active bookings
   async findActive() {
-    const result = await query("SELECT * FROM bookings WHERE status = $1 ORDER BY created_at DESC", ['active']);
+    const result = await query(
+      "SELECT * FROM bookings WHERE status = $1 ORDER BY created_at DESC",
+      ["active"],
+    );
     return result.rows;
   }
 
   // Create a new booking
   async create(bookingData) {
-    const { pad_id, user_id, start_date, end_date, total_price, status } = bookingData;
+    const { udder_id, user_id, start_date, end_date, total_price, status } =
+      bookingData;
     const result = await query(
-      'INSERT INTO bookings (pad_id, user_id, start_date, end_date, total_price, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [pad_id, user_id, start_date, end_date, total_price, status || 'pending']
+      "INSERT INTO bookings (udder_id, user_id, start_date, end_date, total_price, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [udder_id, user_id, start_date, end_date, total_price, status || "pending"],
     );
     return result.rows[0];
   }
@@ -74,15 +87,15 @@ class BookingRepository {
   async update(id, bookingData) {
     const { status, total_price } = bookingData;
     const result = await query(
-      'UPDATE bookings SET status = COALESCE($2, status), total_price = COALESCE($3, total_price) WHERE id = $1 RETURNING *',
-      [id, status, total_price]
+      "UPDATE bookings SET status = COALESCE($2, status), total_price = COALESCE($3, total_price) WHERE id = $1 RETURNING *",
+      [id, status, total_price],
     );
     return result.rows[0] || null;
   }
 
   // Delete a booking
   async delete(id) {
-    await query('DELETE FROM bookings WHERE id = $1', [id]);
+    await query("DELETE FROM bookings WHERE id = $1", [id]);
     return true;
   }
 

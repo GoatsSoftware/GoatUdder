@@ -1,99 +1,165 @@
 // GoatUdder Frontend Application
 // API endpoints - works both locally and via Docker nginx proxy
-const API_BASE_URL = '/api';
-const BOOKING_API_BASE_URL = '/booking-api';
+const API_BASE_URL = "/api";
+const BOOKING_API_BASE_URL = "/booking-api";
 
 // State
 let currentUser = null;
-let selectedPad = null;
+let selectedUdder = null;
 
 // DOM Elements
-const padsList = document.getElementById('padsList');
-const padsLoading = document.getElementById('padsLoading');
-const bookingsList = document.getElementById('bookingsList');
-const bookingsLoading = document.getElementById('bookingsLoading');
-const bookingModal = document.getElementById('bookingModal');
-const userModal = document.getElementById('userModal');
-const bookingForm = document.getElementById('bookingForm');
-const userForm = document.getElementById('userForm');
-const browsePadsBtn = document.getElementById('browsePadsBtn');
+const uddersList = document.getElementById("uddersList");
+const uddersLoading = document.getElementById("uddersLoading");
+const bookingsList = document.getElementById("bookingsList");
+const bookingsLoading = document.getElementById("bookingsLoading");
+const bookingModal = document.getElementById("bookingModal");
+const userModal = document.getElementById("userModal");
+const loginModal = document.getElementById("loginModal");
+const bookingForm = document.getElementById("bookingForm");
+const userForm = document.getElementById("userForm");
+const loginForm = document.getElementById("loginForm");
+const browseUddersBtn = document.getElementById("browseUddersBtn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const userDisplay = document.getElementById("userDisplay");
 
 // Initialize application
-document.addEventListener('DOMContentLoaded', () => {
-    loadPads();
-    setupEventListeners();
+document.addEventListener("DOMContentLoaded", () => {
+  checkAuth();
+  loadUdders();
+  setupEventListeners();
 });
 
-// Load available pads from API
-async function loadPads() {
-    try {
-        padsLoading.style.display = 'block';
-        padsList.style.display = 'none';
+// Check authentication status
+function checkAuth() {
+  const token = localStorage.getItem("goatUdderToken");
+  const user = localStorage.getItem("goatUdderUser");
 
-        const response = await fetch(`${API_BASE_URL}/pads/available`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const pads = await response.json();
+  if (token && user) {
+    currentUser = JSON.parse(user);
+    showAuthUI();
+  } else {
+    hideAuthUI();
+  }
+}
 
-        padsLoading.style.display = 'none';
-        padsList.style.display = 'grid';
+// Show authenticated UI
+function showAuthUI() {
+  loginBtn.style.display = "none";
+  logoutBtn.style.display = "inline-block";
+  userDisplay.style.display = "inline-block";
+  userDisplay.textContent = `👤 ${currentUser.username}`;
+}
 
-        if (pads.length === 0) {
-            padsList.innerHTML = '<p class="loading">Aucun pad disponible pour le moment.</p>';
-            return;
-        }
+// Hide authenticated UI
+function hideAuthUI() {
+  loginBtn.style.display = "inline-block";
+  logoutBtn.style.display = "none";
+  userDisplay.style.display = "none";
+  currentUser = null;
+}
 
-        padsList.innerHTML = pads.map(pad => `
-            <div class="pad-card">
-                <h3>${pad.name}</h3>
-                <p class="location">📍 ${pad.location}</p>
-                <div class="details">
-                    <p><strong>Superficie:</strong> ${pad.area} hectares</p>
-                    <p><strong>Type:</strong> ${pad.type}</p>
-                    <p><strong>Capacité:</strong> ${pad.capacity} chèvres</p>
-                    <p><strong>Équipements:</strong> ${pad.equipments}</p>
-                </div>
-                <p class="price">${pad.price_per_day}€/jour</p>
-                <span class="status available">Disponible</span>
-                <button class="book-btn" onclick="openBookingModal(${pad.id}, '${pad.name}', ${pad.price_per_day})">Réserver</button>
-            </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading pads:', error);
-        padsLoading.style.display = 'block';
-        padsLoading.innerHTML = '<p style="color: #c62828;">Erreur lors du chargement des pads. Vérifiez que l\'API est démarrée.</p>';
+// Get auth token for API requests
+function getAuthToken() {
+  const token = localStorage.getItem("goatUdderToken");
+  if (!token) {
+    throw new Error('Non authentifié');
+  }
+  return token;
+}
+
+// Load available udders from API
+async function loadUdders() {
+  try {
+    uddersLoading.style.display = "block";
+    uddersList.style.display = "none";
+
+    const headers = {};
+    const token = localStorage.getItem("goatUdderToken");
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
     }
+
+    const response = await fetch(`${API_BASE_URL}/udder/available`, { headers });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const responseData = await response.json();
+    const udders = responseData.data;
+
+    uddersLoading.style.display = "none";
+    uddersList.style.display = "grid";
+
+    if (!udders || udders.length === 0) {
+      uddersList.innerHTML =
+        '<p class="loading">Aucun pis disponible pour le moment.</p>';
+      return;
+    }
+
+    uddersList.innerHTML = udders
+      .map(
+        (udder) => `
+            <div class="udder-card">
+                <h3>${udder.name}</h3>
+                <p class="location">📍 ${udder.location}</p>
+                <div class="details">
+                    <p><strong>Capacité:</strong> ${udder.capacity} chèvres</p>
+                    <p><strong>Équipements:</strong> ${udder.amenities ? udder.amenities.join(', ') : 'N/A'}</p>
+                </div>
+                <p class="price">${udder.price_per_day}€/jour</p>
+                <span class="status available">Disponible</span>
+                <button class="book-btn" onclick="openBookingModal(${udder.id}, '${udder.name}', ${udder.price_per_day})">Réserver</button>
+            </div>
+        `,
+      )
+      .join("");
+  } catch (error) {
+    console.error("Error loading udders:", error);
+    uddersLoading.style.display = "block";
+    uddersLoading.innerHTML =
+      '<p style="color: #c62828;">Erreur lors du chargement des pis. Vérifiez que l\'API est démarrée.</p>';
+  }
 }
 
 // Load user bookings
 async function loadBookings() {
-    if (!currentUser) {
-        bookingsList.innerHTML = '<p class="loading">Veuillez vous connecter pour voir vos réservations.</p>';
-        return;
+  if (!currentUser) {
+    bookingsLoading.style.display = "none";
+    bookingsList.style.display = "block";
+    bookingsList.innerHTML =
+      '<p class="loading">Veuillez vous connecter pour voir vos réservations.</p>';
+    return;
+  }
+
+  try {
+    bookingsLoading.style.display = "block";
+    bookingsList.style.display = "none";
+
+    const token = getAuthToken();
+    const response = await fetch(
+      `${API_BASE_URL}/bookings/user/${currentUser.id}`,
+      { headers: { "Authorization": `Bearer ${token}` } },
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const bookingResponseData = await response.json();
+    const bookings = bookingResponseData.data;
+
+    bookingsLoading.style.display = "none";
+    bookingsList.style.display = "flex";
+
+    if (!bookings || bookings.length === 0) {
+      bookingsList.innerHTML =
+        '<p class="loading">Aucune réservation pour le moment.</p>';
+      return;
     }
 
-    try {
-        bookingsLoading.style.display = 'block';
-        bookingsList.style.display = 'none';
-
-        const response = await fetch(`${API_BASE_URL}/bookings/user/${currentUser.id}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const bookings = await response.json();
-
-        bookingsLoading.style.display = 'none';
-        bookingsList.style.display = 'flex';
-
-        if (bookings.length === 0) {
-            bookingsList.innerHTML = '<p class="loading">Aucune réservation pour le moment.</p>';
-            return;
-        }
-
-        bookingsList.innerHTML = bookings.map(booking => `
+    bookingsList.innerHTML = bookings
+      .map(
+        (booking) => `
             <div class="booking-card">
-                <h3>Pad: ${booking.pad_name}</h3>
+                <h3>Pis: ${booking.udder_name || booking.pad_name}</h3>
                 <div class="info">
                     <span><strong>Début:</strong> ${booking.start_date}</span>
                     <span><strong>Fin:</strong> ${booking.end_date}</span>
@@ -101,219 +167,325 @@ async function loadBookings() {
                 </div>
                 <span class="status ${booking.status}">${formatBookingStatus(booking.status)}</span>
             </div>
-        `).join('');
-    } catch (error) {
-        console.error('Error loading bookings:', error);
-        bookingsLoading.style.display = 'block';
-        bookingsLoading.innerHTML = '<p style="color: #c62828;">Erreur lors du chargement des réservations.</p>';
-    }
+        `,
+      )
+      .join("");
+  } catch (error) {
+    console.error("Error loading bookings:", error);
+    bookingsLoading.style.display = "block";
+    bookingsLoading.innerHTML =
+      '<p style="color: #c62828;">Erreur lors du chargement des réservations.</p>';
+  }
 }
 
 // Format booking status
 function formatBookingStatus(status) {
-    const statusMap = {
-        'active': 'Active',
-        'completed': 'Complétée',
-        'cancelled': 'Annulée',
-        'pending': 'En attente'
-    };
-    return statusMap[status] || status;
+  const statusMap = {
+    active: "Active",
+    completed: "Complétée",
+    cancelled: "Annulée",
+    pending: "En attente",
+  };
+  return statusMap[status] || status;
 }
 
 // Open booking modal
-function openBookingModal(padId, padName, pricePerDay) {
-    selectedPad = { id: padId, name: padName, pricePerDay: pricePerDay };
+function openBookingModal(udderId, udderName, pricePerDay) {
+  selectedUdder = { id: udderId, name: udderName, pricePerDay: pricePerDay };
 
-    document.getElementById('padName').value = padName;
-    document.getElementById('totalPrice').value = `${pricePerDay}€`;
+  document.getElementById("udderName").value = udderName;
+  document.getElementById("totalPrice").value = `${pricePerDay}€`;
 
-    // Set minimum dates
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('startDate').min = today;
-    document.getElementById('endDate').min = today;
+  // Set minimum dates
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("startDate").min = today;
+  document.getElementById("endDate").min = today;
 
-    bookingModal.classList.add('active');
+  bookingModal.classList.add("active");
 }
 
 // Close booking modal
 function closeBookingModal() {
-    bookingModal.classList.remove('active');
-    bookingForm.reset();
-    selectedPad = null;
+  bookingModal.classList.remove("active");
+  bookingForm.reset();
+  selectedUdder = null;
 }
 
 // Open user registration modal
 function openUserModal() {
-    userModal.classList.add('active');
+  userModal.classList.add("active");
 }
 
 // Close user modal
 function closeUserModal() {
-    userModal.classList.remove('active');
-    userForm.reset();
+  userModal.classList.remove("active");
+  userForm.reset();
+}
+
+// Open login modal
+function openLoginModal() {
+  loginModal.classList.add("active");
+}
+
+// Close login modal
+function closeLoginModal() {
+  loginModal.classList.remove("active");
+  loginForm.reset();
+}
+
+// Login user
+async function login(username, password) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const loginResponseData = await response.json();
+    const { user, token } = loginResponseData.data;
+
+    // Store token and user in localStorage
+    localStorage.setItem("goatUdderToken", token);
+    localStorage.setItem("goatUdderUser", JSON.stringify(user));
+
+    currentUser = user;
+    showAuthUI();
+    closeLoginModal();
+    loadBookings();
+    return user;
+  } catch (error) {
+    console.error("Error logging in:", error);
+    throw error;
+  }
+}
+
+// Logout user
+function logout() {
+  localStorage.removeItem("goatUdderToken");
+  localStorage.removeItem("goatUdderUser");
+  hideAuthUI();
+  loadBookings();
 }
 
 // Register user
-async function registerUser(name, email, phone) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/users/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, phone })
-        });
+async function registerUser(username, email, password) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password }),
+    });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const user = await response.json();
-        currentUser = user;
-        closeUserModal();
-        loadBookings();
-        return user;
-    } catch (error) {
-        console.error('Error registering user:', error);
-        throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const userResponseData = await response.json();
+    const user = userResponseData.data;
+    currentUser = user;
+    closeUserModal();
+    loadBookings();
+    return user;
+  } catch (error) {
+    console.error("Error registering user:", error);
+    throw error;
+  }
 }
 
 // Create booking
-async function createBooking(padId, startDate, endDate, paymentMethod) {
-    try {
-        const days = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
-        const totalPrice = days * selectedPad.pricePerDay;
+async function createBooking(udderId, startDate, endDate, paymentMethod) {
+  try {
+    const days = Math.ceil(
+      (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24),
+    );
+    const totalPrice = days * selectedUdder.pricePerDay;
 
-        const bookingData = {
-            user_id: currentUser.id,
-            pad_id: padId,
-            start_date: startDate,
-            end_date: endDate,
-            total_price: totalPrice
-        };
+    const token = getAuthToken();
 
-        // Create booking via API
-        const bookingResponse = await fetch(`${API_BASE_URL}/bookings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookingData)
-        });
+    const bookingData = {
+      user_id: currentUser.id,
+      udder_id: udderId,
+      start_date: startDate,
+      end_date: endDate,
+      total_price: totalPrice,
+    };
 
-        if (!bookingResponse.ok) {
-            throw new Error(`HTTP error! status: ${bookingResponse.status}`);
-        }
+    // Create booking via API
+    const bookingResponse = await fetch(`${API_BASE_URL}/bookings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(bookingData),
+    });
 
-        const booking = await bookingResponse.json();
-
-        // Process payment via Booking Service
-        const paymentResponse = await fetch(`${BOOKING_API_BASE_URL}/payments`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                booking_id: booking.id,
-                amount: totalPrice,
-                payment_method: paymentMethod
-            })
-        });
-
-        if (!paymentResponse.ok) {
-            throw new Error(`HTTP error! status: ${paymentResponse.status}`);
-        }
-
-        const payment = await paymentResponse.json();
-
-        // Send booking confirmation notification
-        await fetch(`${BOOKING_API_BASE_URL}/notifications/booking-confirmation`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: currentUser.id,
-                booking_id: booking.id,
-                user_email: currentUser.email,
-                pad_name: selectedPad.name,
-                start_date: startDate,
-                end_date: endDate,
-                total_price: totalPrice
-            })
-        });
-
-        closeBookingModal();
-        loadBookings();
-        return { booking, payment };
-    } catch (error) {
-        console.error('Error creating booking:', error);
-        throw error;
+    if (!bookingResponse.ok) {
+      throw new Error(`HTTP error! status: ${bookingResponse.status}`);
     }
+
+    const bookingResponseData = await bookingResponse.json();
+    const booking = bookingResponseData.data;
+
+    // Process payment via Booking Service
+    const paymentResponse = await fetch(`${BOOKING_API_BASE_URL}/payments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        booking_id: booking.id,
+        amount: totalPrice,
+        payment_method: paymentMethod,
+      }),
+    });
+
+    if (!paymentResponse.ok) {
+      throw new Error(`HTTP error! status: ${paymentResponse.status}`);
+    }
+
+    const paymentResponseData = await paymentResponse.json();
+    const payment = paymentResponseData.data;
+
+    // Send booking confirmation notification
+    await fetch(`${BOOKING_API_BASE_URL}/notifications/booking-confirmation`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        booking_id: booking.id,
+        user_email: currentUser.email,
+        udder_name: selectedUdder.name,
+        start_date: startDate,
+        end_date: endDate,
+        total_price: totalPrice,
+      }),
+    });
+
+    closeBookingModal();
+    loadBookings();
+    return { booking, payment };
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    throw error;
+  }
 }
 
 // Setup event listeners
 function setupEventListeners() {
-    // Browse pads button
-    browsePadsBtn.addEventListener('click', () => {
-        document.getElementById('pads').scrollIntoView({ behavior: 'smooth' });
-    });
+  // Browse udders button
+  browseUddersBtn.addEventListener("click", () => {
+    document.getElementById("udders").scrollIntoView({ behavior: "smooth" });
+  });
 
-    // Booking modal close button
-    bookingModal.querySelector('.close-btn').addEventListener('click', closeBookingModal);
+  // Login button
+  loginBtn.addEventListener("click", openLoginModal);
 
-    // User modal close button
-    userModal.querySelector('.close-btn').addEventListener('click', closeUserModal);
+  // Logout button
+  logoutBtn.addEventListener("click", logout);
 
-    // Close modals on outside click
-    bookingModal.addEventListener('click', (e) => {
-        if (e.target === bookingModal) closeBookingModal();
-    });
+  // Booking modal close button
+  bookingModal
+    .querySelector(".close-btn")
+    .addEventListener("click", closeBookingModal);
 
-    userModal.addEventListener('click', (e) => {
-        if (e.target === userModal) closeUserModal();
-    });
+  // User modal close button
+  userModal
+    .querySelector(".close-btn")
+    .addEventListener("click", closeUserModal);
 
-    // Booking form submit
-    bookingForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+  // Login modal close button
+  loginModal
+    .querySelector(".close-btn")
+    .addEventListener("click", closeLoginModal);
 
-        if (!currentUser) {
-            openUserModal();
-            return;
-        }
+  // Close modals on outside click
+  bookingModal.addEventListener("click", (e) => {
+    if (e.target === bookingModal) closeBookingModal();
+  });
 
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const paymentMethod = document.getElementById('paymentMethod').value;
+  userModal.addEventListener("click", (e) => {
+    if (e.target === userModal) closeUserModal();
+  });
 
-        if (!startDate || !endDate) {
-            alert('Veuillez remplir toutes les dates.');
-            return;
-        }
+  loginModal.addEventListener("click", (e) => {
+    if (e.target === loginModal) closeLoginModal();
+  });
 
-        if (new Date(endDate) <= new Date(startDate)) {
-            alert('La date de fin doit être après la date de début.');
-            return;
-        }
+  // Booking form submit
+  bookingForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        try {
-            const result = await createBooking(selectedPad.id, startDate, endDate, paymentMethod);
-            alert(`Réservation confirmée! ID: ${result.booking.id}\nPaiement ID: ${result.payment.id}`);
-        } catch (error) {
-            alert('Erreur lors de la création de la réservation.');
-        }
-    });
+    if (!currentUser) {
+      openLoginModal();
+      return;
+    }
 
-    // User form submit
-    userForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+    const paymentMethod = document.getElementById("paymentMethod").value;
 
-        const name = document.getElementById('userName').value;
-        const email = document.getElementById('userEmail').value;
-        const phone = document.getElementById('userPhone').value;
+    if (!startDate || !endDate) {
+      alert("Veuillez remplir toutes les dates.");
+      return;
+    }
 
-        try {
-            await registerUser(name, email, phone);
-            alert('Compte créé avec succès!');
-        } catch (error) {
-            alert('Erreur lors de la création du compte.');
-        }
-    });
+    if (new Date(endDate) <= new Date(startDate)) {
+      alert("La date de fin doit être après la date de début.");
+      return;
+    }
 
-    // Auto-load bookings if user exists
+    try {
+      const result = await createBooking(
+        selectedUdder.id,
+        startDate,
+        endDate,
+        paymentMethod,
+      );
+      alert(
+        `Réservation confirmée! ID: ${result.booking.id}\nPaiement ID: ${result.payment.id}`,
+      );
+    } catch (error) {
+      alert("Erreur lors de la création de la réservation.");
+    }
+  });
+
+  // User form submit
+  userForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById("userName").value;
+    const email = document.getElementById("userEmail").value;
+    const password = document.getElementById("userPassword").value;
+
+    try {
+      await registerUser(username, email, password);
+      alert("Compte créé avec succès!");
+    } catch (error) {
+      alert("Erreur lors de la création du compte.");
+    }
+  });
+
+  // Login form submit
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById("loginUsername").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      await login(username, password);
+      alert("Connexion réussie!");
+    } catch (error) {
+      alert("Erreur lors de la connexion: " + error.message);
+    }
+  });
+
+  // Auto-load bookings if user exists
+  if (currentUser) {
     loadBookings();
+  }
 }

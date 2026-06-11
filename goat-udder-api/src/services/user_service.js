@@ -55,12 +55,12 @@ class UserService {
 
     const user = await this.repository.findByUsername(username);
     if (!user) {
-      throw new Error('Invalid username or password');
+      throw new Error('Nom d\'utilisateur ou mot de passe invalide');
     }
 
     const isValidPassword = await this.repository.verifyPassword(user, password);
     if (!isValidPassword) {
-      throw new Error('Invalid username or password');
+      throw new Error('Nom d\'utilisateur ou mot de passe invalide');
     }
 
     const token = this.generateToken(user);
@@ -118,23 +118,23 @@ class UserService {
   // Validate registration data
   validateRegistrationData(userData) {
     if (!userData.username || userData.username.trim() === '') {
-      throw new Error('Username is required');
+      throw new Error('Le nom d\'utilisateur est requis');
     }
     if (!userData.email || userData.email.trim() === '') {
-      throw new Error('Email is required');
+      throw new Error('L\'email est requis');
     }
     if (!userData.password || userData.password.length < 8) {
-      throw new Error('Password must be at least 8 characters');
+      throw new Error('Le mot de passe doit contenir au moins 8 caractères');
     }
   }
 
   // Validate update data
   validateUpdateData(userData) {
     if (userData.username && userData.username.trim() === '') {
-      throw new Error('Username cannot be empty');
+      throw new Error('Le nom d\'utilisateur ne peut pas être vide');
     }
     if (userData.email && userData.email.trim() === '') {
-      throw new Error('Email cannot be empty');
+      throw new Error('L\'email ne peut pas être vide');
     }
   }
 

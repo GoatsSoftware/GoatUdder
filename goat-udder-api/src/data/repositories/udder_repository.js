@@ -1,23 +1,23 @@
 const { query } = require("../database");
 
-// Pad Repository - Database operations for udder
-class PadRepository {
+// Udder Repository - Database operations for udder (pis de chèvre)
+class UdderRepository {
   // Get all udder
   async findAll() {
     const result = await query("SELECT * FROM udder ORDER BY created_at DESC");
     return result.rows;
   }
 
-  // Get pad by ID
+  // Get udder by ID
   async findById(id) {
     const result = await query("SELECT * FROM udder WHERE id = $1", [id]);
     return result.rows[0] || null;
   }
 
-  // Create a new pad
-  async create(padData) {
+  // Create a new udder
+  async create(udderData) {
     const { name, location, capacity, price_per_day, amenities, status } =
-      padData;
+      udderData;
     const result = await query(
       "INSERT INTO udder (name, location, capacity, price_per_day, amenities, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [
@@ -32,10 +32,10 @@ class PadRepository {
     return result.rows[0];
   }
 
-  // Update a pad
-  async update(id, padData) {
+  // Update a udder
+  async update(id, udderData) {
     const { name, location, capacity, price_per_day, amenities, status } =
-      padData;
+      udderData;
     const result = await query(
       "UPDATE udder SET name = COALESCE($2, name), location = COALESCE($3, location), capacity = COALESCE($4, capacity), price_per_day = COALESCE($5, price_per_day), amenities = COALESCE($6, amenities), status = COALESCE($7, status) WHERE id = $1 RETURNING *",
       [id, name, location, capacity, price_per_day, amenities, status],
@@ -43,7 +43,7 @@ class PadRepository {
     return result.rows[0] || null;
   }
 
-  // Delete a pad
+  // Delete a udder
   async delete(id) {
     await query("DELETE FROM udder WHERE id = $1", [id]);
     return true;
@@ -68,4 +68,4 @@ class PadRepository {
   }
 }
 
-module.exports = PadRepository;
+module.exports = UdderRepository;

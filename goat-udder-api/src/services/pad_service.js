@@ -1,21 +1,21 @@
-const PadRepository = require('../data/repositories/pad_repository');
+const PadRepository = require("../data/repositories/pad_repository");
 
-// Pad Service - Business logic for pads
+// Pad Service - Business logic for udder
 class PadService {
   constructor() {
     this.repository = new PadRepository();
   }
 
-  // Get all pads
+  // Get all udder
   async getAllPads() {
-    const pads = await this.repository.findAll();
-    return pads.map(pad => this.formatPad(pad));
+    const udder = await this.repository.findAll();
+    return udder.map((pad) => this.formatPad(pad));
   }
 
   // Get pad by ID
   async getPadById(id) {
     if (!id || isNaN(id)) {
-      throw new Error('Invalid pad ID');
+      throw new Error("Invalid pad ID");
     }
     const pad = await this.repository.findById(id);
     if (!pad) {
@@ -24,10 +24,10 @@ class PadService {
     return this.formatPad(pad);
   }
 
-  // Get available pads
+  // Get available udder
   async getAvailablePads() {
-    const pads = await this.repository.findAvailable();
-    return pads.map(pad => this.formatPad(pad));
+    const udder = await this.repository.findAvailable();
+    return udder.map((pad) => this.formatPad(pad));
   }
 
   // Create a new pad
@@ -40,7 +40,7 @@ class PadService {
   // Update a pad
   async updatePad(id, padData) {
     if (!id || isNaN(id)) {
-      throw new Error('Invalid pad ID');
+      throw new Error("Invalid pad ID");
     }
     const existingPad = await this.repository.findById(id);
     if (!existingPad) {
@@ -54,7 +54,7 @@ class PadService {
   // Delete a pad
   async deletePad(id) {
     if (!id || isNaN(id)) {
-      throw new Error('Invalid pad ID');
+      throw new Error("Invalid pad ID");
     }
     const existingPad = await this.repository.findById(id);
     if (!existingPad) {
@@ -67,30 +67,30 @@ class PadService {
   // Validate pad data
   validatePadData(padData, partial = false) {
     if (!partial) {
-      if (!padData.name || padData.name.trim() === '') {
-        throw new Error('Pad name is required');
+      if (!padData.name || padData.name.trim() === "") {
+        throw new Error("Pad name is required");
       }
-      if (!padData.location || padData.location.trim() === '') {
-        throw new Error('Pad location is required');
+      if (!padData.location || padData.location.trim() === "") {
+        throw new Error("Pad location is required");
       }
       if (!padData.capacity || padData.capacity <= 0) {
-        throw new Error('Pad capacity must be a positive number');
+        throw new Error("Pad capacity must be a positive number");
       }
       if (!padData.price_per_day || padData.price_per_day <= 0) {
-        throw new Error('Pad price_per_day must be a positive number');
+        throw new Error("Pad price_per_day must be a positive number");
       }
     } else {
-      if (padData.name && padData.name.trim() === '') {
-        throw new Error('Pad name cannot be empty');
+      if (padData.name && padData.name.trim() === "") {
+        throw new Error("Pad name cannot be empty");
       }
-      if (padData.location && padData.location.trim() === '') {
-        throw new Error('Pad location cannot be empty');
+      if (padData.location && padData.location.trim() === "") {
+        throw new Error("Pad location cannot be empty");
       }
       if (padData.capacity && padData.capacity <= 0) {
-        throw new Error('Pad capacity must be a positive number');
+        throw new Error("Pad capacity must be a positive number");
       }
       if (padData.price_per_day && padData.price_per_day <= 0) {
-        throw new Error('Pad price_per_day must be a positive number');
+        throw new Error("Pad price_per_day must be a positive number");
       }
     }
   }
@@ -105,7 +105,7 @@ class PadService {
       price_per_day: parseFloat(pad.price_per_day),
       amenities: pad.amenities || [],
       status: pad.status,
-      created_at: pad.created_at
+      created_at: pad.created_at,
     };
   }
 }
