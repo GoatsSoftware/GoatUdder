@@ -49,6 +49,60 @@ function populateGoatSelect(goats) {
     .join("");
 }
 
+function updatePricePreview() {
+  const duration = parseInt(document.getElementById("duration").value);
+  const select = document.getElementById("goat-ids");
+  const selectedCount = select.selectedOptions.length;
+  const pricePreview = document.getElementById("price-preview");
+
+  if (selectedCount > 0 && duration > 0) {
+    const totalCost = duration * selectedCount * TARIF_PAR_JOUR_PAR_PIS;
+    pricePreview.textContent = `Prix estimé : ${totalCost}€ (${duration} jour${duration > 1 ? "s" : ""} × ${selectedCount} pis × ${TARIF_PAR_JOUR_PAR_PIS}€)`;
+    pricePreview.className = "visible";
+  } else {
+    pricePreview.textContent = "";
+    pricePreview.className = "";
+  }
+}
+
+function handleDurationClick(event) {
+  const btn = event.target;
+  if (!btn.classList.contains("duration-btn")) return;
+
+  const days = parseInt(btn.getAttribute("data-days"));
+  document.getElementById("duration").value = days;
+
+  document.querySelectorAll(".duration-btn").forEach((b) => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  updatePricePreview();
+}
+
+function handleGoatSearch(event) {
+  const query = event.target.value.toLowerCase();
+  const select = document.getElementById("goat-ids");
+  const options = select.querySelectorAll("option");
+
+  options.forEach((option) => {
+    const name = option.textContent.toLowerCase();
+    option.style.display = name.includes(query) ? "" : "none";
+  });
+}
+
+function handleStartDateChange(event) {
+  const startDate = event.target.value;
+  const duration = parseInt(document.getElementById("duration").value);
+
+  if (startDate && duration > 0) {
+    const start = new Date(startDate);
+    const end = new Date(start);
+    end.setDate(end.getDate() + duration);
+    const endDateInput = document.getElementById("end-date");
+    endDateInput.value = end.toISOString().split("T")[0];
+    updatePricePreview();
+  }
+}
+
 async function loadActiveRentals() {
   try {
     const response = await fetch(`${RENTAL_SERVICE_URL}/rentals/active`);
@@ -100,7 +154,7 @@ async function handleRentalForm(event) {
     parseInt(option.value),
   );
   const startDate = document.getElementById("start-date").value;
-  const endDate = document.getElementById("end-date").value;
+  const duration = parseInt(document.getElementById("duration").value);
   const resultDiv = document.getElementById("rental-result");
 
   if (goatIds.length < 1 || goatIds.length > 4) {
@@ -109,11 +163,16 @@ async function handleRentalForm(event) {
     return;
   }
 
-  if (!startDate || !endDate) {
+  if (!startDate) {
     resultDiv.className = "error";
-    resultDiv.textContent = "Veuillez remplir les dates de début et de fin.";
+    resultDiv.textContent = "Veuillez remplir la date de début.";
     return;
   }
+
+  const start = new Date(startDate);
+  const end = new Date(start);
+  end.setDate(end.getDate() + duration);
+  const endDate = end.toISOString().split("T")[0];
 
   try {
     const response = await fetch(`${RENTAL_SERVICE_URL}/rentals`, {
@@ -142,6 +201,16 @@ async function handleRentalForm(event) {
 document
   .getElementById("rental-form")
   .addEventListener("submit", handleRentalForm);
+
+document.querySelectorAll(".duration-btn").forEach((btn) => {
+  btn.addEventListener("click", handleDurationClick);
+});
+
+document.getElementById("goat-search").addEventListener("input", handleGoatSearch);
+document.getElementById("start-date").addEventListener("change", handleStartDateChange);
+
+// Set initial active button
+document.querySelector('.duration-btn[data-days="1"]').classList.add("active");
 
 // Initial load
 loadGoats();

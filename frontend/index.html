@@ -32,8 +32,18 @@
         <label for="start-date">Date de début :</label>
         <input type="date" id="start-date" required>
 
-        <label for="end-date">Date de fin :</label>
-        <input type="date" id="end-date" required>
+        <label>Durée de location :</label>
+        <div class="duration-selector">
+          <button type="button" class="duration-btn" data-days="1">1 jour</button>
+          <button type="button" class="duration-btn" data-days="2">2 jours</button>
+          <button type="button" class="duration-btn" data-days="3">3 jours</button>
+          <button type="button" class="duration-btn" data-days="4">4 jours</button>
+          <button type="button" class="duration-btn" data-days="5">5 jours</button>
+          <button type="button" class="duration-btn" data-days="6">6 jours</button>
+          <button type="button" class="duration-btn" data-days="7">7 jours</button>
+        </div>
+        <input type="hidden" id="duration" value="1">
+        <div id="price-preview"></div>
 
         <button type="submit">Louer</button>
       </form>
