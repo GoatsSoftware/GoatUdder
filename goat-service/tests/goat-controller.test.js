@@ -1,20 +1,24 @@
 const request = require('supertest');
-const app = require('../src/index.js');
 const GoatService = require('../src/service/goat-service');
 
-jest.mock('../src/service/goat-service');
+jest.mock('../src/service/goat-service', () => {
+  const mockService = {
+    getAllGoats: jest.fn(),
+    getGoatById: jest.fn(),
+    getAvailableGoats: jest.fn(),
+    isGoatAvailable: jest.fn(),
+  };
+  return jest.fn().mockReturnValue(mockService);
+});
+
+// Load app after mock is set up
+const app = require('../src/index.js');
 
 describe('GoatController', () => {
   let mockService;
 
   beforeEach(() => {
-    mockService = {
-      getAllGoats: jest.fn(),
-      getGoatById: jest.fn(),
-      getAvailableGoats: jest.fn(),
-      isGoatAvailable: jest.fn(),
-    };
-    GoatService.mockImplementation(() => mockService);
+    mockService = GoatService.mock.results[0].value;
   });
 
   describe('GET /goats', () => {
@@ -34,7 +38,7 @@ describe('GoatController', () => {
       const response = await request(app).get('/goats');
 
       expect(response.status).toBe(500);
-      expect(response.body.error).toBe('Erreur lors de la récupération des chèvres');
+      expect(response.body.error).toBe('Erreur lors de la récupération des chèvres: Erreur DB');
     });
   });
 
