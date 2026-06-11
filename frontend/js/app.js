@@ -50,7 +50,7 @@ function populateGoatSelect(goats) {
 }
 
 function updatePricePreview() {
-  const duration = parseInt(document.getElementById("duration").value);
+  const duration = Number.parseInt(document.getElementById("duration").value);
   const select = document.getElementById("goat-ids");
   const selectedCount = select.selectedOptions.length;
   const pricePreview = document.getElementById("price-preview");
@@ -69,7 +69,7 @@ function handleDurationClick(event) {
   const btn = event.target;
   if (!btn.classList.contains("duration-btn")) return;
 
-  const days = parseInt(btn.getAttribute("data-days"));
+  const days = Number.parseInt(btn.dataset.days);
   document.getElementById("duration").value = days;
 
   document.querySelectorAll(".duration-btn").forEach((b) => b.classList.remove("active"));
@@ -91,7 +91,7 @@ function handleGoatSearch(event) {
 
 function handleStartDateChange(event) {
   const startDate = event.target.value;
-  const duration = parseInt(document.getElementById("duration").value);
+  const duration = Number.parseInt(document.getElementById("duration").value);
 
   if (startDate && duration > 0) {
     const start = new Date(startDate);
@@ -151,10 +151,10 @@ async function handleRentalForm(event) {
 
   const select = document.getElementById("goat-ids");
   const goatIds = Array.from(select.selectedOptions).map((option) =>
-    parseInt(option.value),
+    Number.parseInt(option.value),
   );
   const startDate = document.getElementById("start-date").value;
-  const duration = parseInt(document.getElementById("duration").value);
+  const duration = Number.parseInt(document.getElementById("duration").value);
   const resultDiv = document.getElementById("rental-result");
 
   if (goatIds.length < 1 || goatIds.length > 4) {
@@ -192,7 +192,7 @@ async function handleRentalForm(event) {
       resultDiv.textContent =
         data.error || "Erreur lors de la création de la location.";
     }
-  } catch (error) {
+  } catch {
     resultDiv.className = "error";
     resultDiv.textContent = "Erreur de connexion au service de location.";
   }
@@ -213,5 +213,5 @@ document.getElementById("start-date").addEventListener("change", handleStartDate
 document.querySelector('.duration-btn[data-days="1"]').classList.add("active");
 
 // Initial load
-loadGoats();
-loadActiveRentals();
+await loadGoats();
+await loadActiveRentals();

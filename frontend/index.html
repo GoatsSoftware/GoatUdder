@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GoatUdder - Location de pis de chèvres</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
   <header>
     <h1>GoatUdder</h1>
@@ -32,18 +34,19 @@
         <label for="start-date">Date de début :</label>
         <input type="date" id="start-date" required>
 
-        <label>Durée de location :</label>
-        <div class="duration-selector">
-          <button type="button" class="duration-btn" data-days="1">1 jour</button>
-          <button type="button" class="duration-btn" data-days="2">2 jours</button>
-          <button type="button" class="duration-btn" data-days="3">3 jours</button>
-          <button type="button" class="duration-btn" data-days="4">4 jours</button>
-          <button type="button" class="duration-btn" data-days="5">5 jours</button>
-          <button type="button" class="duration-btn" data-days="6">6 jours</button>
-          <button type="button" class="duration-btn" data-days="7">7 jours</button>
-        </div>
-        <input type="hidden" id="duration" value="1">
-        <div id="price-preview"></div>
+        <label>Durée de location :
+          <div class="duration-selector">
+            <button type="button" class="duration-btn" data-days="1">1 jour</button>
+            <button type="button" class="duration-btn" data-days="2">2 jours</button>
+            <button type="button" class="duration-btn" data-days="3">3 jours</button>
+            <button type="button" class="duration-btn" data-days="4">4 jours</button>
+            <button type="button" class="duration-btn" data-days="5">5 jours</button>
+            <button type="button" class="duration-btn" data-days="6">6 jours</button>
+            <button type="button" class="duration-btn" data-days="7">7 jours</button>
+          </div>
+          <input type="hidden" id="duration" value="1">
+          <div id="price-preview"></div>
+        </label>
 
         <button type="submit">Louer</button>
       </form>
@@ -58,4 +61,5 @@
 
   <script src="js/app.js"></script>
 </body>
+
 </html>
