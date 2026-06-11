@@ -61,6 +61,29 @@ describe('GoatController', () => {
       expect(response.status).toBe(404);
       expect(response.body.error).toBe('Chèvre non trouvée');
     });
+
+    it('should return 400 for invalid id', async () => {
+      const response = await request(app).get('/goats/NaN');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('ID invalide');
+    });
+
+    it('should return 400 for negative id', async () => {
+      const response = await request(app).get('/goats/-1');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('ID invalide');
+    });
+
+    it('should return 500 on error', async () => {
+      mockService.getGoatById.mockRejectedValue(new Error('Erreur DB'));
+
+      const response = await request(app).get('/goats/1');
+
+      expect(response.status).toBe(500);
+      expect(response.body.error).toBe('Erreur lors de la récupération de la chèvre: Erreur DB');
+    });
   });
 
   describe('GET /goats/available', () => {
@@ -73,6 +96,15 @@ describe('GoatController', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockGoats);
     });
+
+    it('should return 500 on error', async () => {
+      mockService.getAvailableGoats.mockRejectedValue(new Error('Erreur DB'));
+
+      const response = await request(app).get('/goats/available');
+
+      expect(response.status).toBe(500);
+      expect(response.body.error).toBe('Erreur lors de la récupération des chèvres disponibles: Erreur DB');
+    });
   });
 
   describe('GET /goats/:id/available', () => {
@@ -83,6 +115,31 @@ describe('GoatController', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ id: 1, available: true });
+    });
+
+    it('should return availability false', async () => {
+      mockService.isGoatAvailable.mockResolvedValue(false);
+
+      const response = await request(app).get('/goats/2/available');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ id: 2, available: false });
+    });
+
+    it('should return 400 for invalid id', async () => {
+      const response = await request(app).get('/goats/NaN/available');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('ID invalide');
+    });
+
+    it('should return 500 on error', async () => {
+      mockService.isGoatAvailable.mockRejectedValue(new Error('Erreur DB'));
+
+      const response = await request(app).get('/goats/1/available');
+
+      expect(response.status).toBe(500);
+      expect(response.body.error).toBe('Erreur lors de la vérification de disponibilité: Erreur DB');
     });
   });
 });
