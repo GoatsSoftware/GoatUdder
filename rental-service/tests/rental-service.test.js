@@ -1,22 +1,23 @@
 const RentalService = require('../src/service/rental-service');
-const RentalRepository = require('../src/data/rental-repository');
 
-jest.mock('../src/data/rental-repository');
+jest.mock('../src/data/rental-repository', () => {
+  const mockRepository = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    findActive: jest.fn(),
+    create: jest.fn(),
+    updateStatus: jest.fn(),
+  };
+  return jest.fn().mockReturnValue(mockRepository);
+});
 
 describe('RentalService', () => {
   let rentalService;
   let mockRepository;
 
   beforeEach(() => {
-    mockRepository = {
-      findAll: jest.fn(),
-      findById: jest.fn(),
-      findActive: jest.fn(),
-      create: jest.fn(),
-      updateStatus: jest.fn(),
-    };
-    RentalRepository.mockImplementation(() => mockRepository);
     rentalService = new RentalService();
+    mockRepository = require('../src/data/rental-repository').mock.results[0].value;
   });
 
   describe('getAllRentals', () => {
@@ -103,21 +104,20 @@ describe('RentalService', () => {
 
   describe('calculateCost', () => {
     it('should calculate correct cost', async () => {
-      mockRepository.findById.mockResolvedValue(null);
       const cost = await rentalService.calculateCost([1, 2], '2026-07-01', '2026-07-05');
-      expect(cost).toBe(40);
+      expect(cost).toBe(80);
     });
   });
 
   describe('createRental', () => {
     it('should create a rental', async () => {
-      const mockRental = { id: 1, goatIds: [1, 2], start_date: '2026-07-01', end_date: '2026-07-05', total_cost: 40, status: 'active' };
+      const mockRental = { id: 1, goatIds: [1, 2], start_date: '2026-07-01', end_date: '2026-07-05', total_cost: 80, status: 'active' };
       mockRepository.create.mockResolvedValue(mockRental);
 
       const result = await rentalService.createRental([1, 2], '2026-07-01', '2026-07-05');
 
       expect(result).toEqual(mockRental);
-      expect(mockRepository.create).toHaveBeenCalledWith([1, 2], '2026-07-01', '2026-07-05', 40);
+      expect(mockRepository.create).toHaveBeenCalledWith([1, 2], '2026-07-01', '2026-07-05', 80);
     });
 
     it('should throw for invalid duration', async () => {

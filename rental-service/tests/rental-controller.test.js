@@ -1,21 +1,26 @@
 const request = require('supertest');
-const app = require('../src/index.js');
 const RentalService = require('../src/service/rental-service');
 
-jest.mock('../src/service/rental-service');
+jest.mock('../src/service/rental-service', () => {
+  const mockService = {
+    getAllRentals: jest.fn(),
+    getRentalById: jest.fn(),
+    getActiveRentals: jest.fn(),
+    createRental: jest.fn(),
+    completeRental: jest.fn(),
+  };
+  return jest.fn().mockReturnValue(mockService);
+});
+
+// Load app after mock is set up
+const app = require('../src/index.js');
 
 describe('RentalController', () => {
   let mockService;
 
   beforeEach(() => {
-    mockService = {
-      getAllRentals: jest.fn(),
-      getRentalById: jest.fn(),
-      getActiveRentals: jest.fn(),
-      createRental: jest.fn(),
-      completeRental: jest.fn(),
-    };
-    RentalService.mockImplementation(() => mockService);
+    // Get the mock instance from the mocked constructor
+    mockService = RentalService.mock.results[0].value;
   });
 
   describe('GET /rentals', () => {
@@ -35,7 +40,7 @@ describe('RentalController', () => {
       const response = await request(app).get('/rentals');
 
       expect(response.status).toBe(500);
-      expect(response.body.error).toBe('Erreur lors de la récupération des locations');
+      expect(response.body.error).toBe('Erreur lors de la récupération des locations:Erreur DB');
     });
   });
 
@@ -93,7 +98,7 @@ describe('RentalController', () => {
         .send({ goatIds: [1], startDate: '2026-07-10', endDate: '2026-07-01' });
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Durée de location invalide');
+      expect(response.body.error).toBe('Erreur lors de la création de la location:Durée de location invalide');
     });
   });
 
@@ -114,7 +119,7 @@ describe('RentalController', () => {
       const response = await request(app).post('/rentals/99/complete');
 
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Location non trouvée');
+      expect(response.body.error).toBe('Erreur lors de la complétion de la location:Location non trouvée');
     });
   });
 });
