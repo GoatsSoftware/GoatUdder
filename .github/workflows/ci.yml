@@ -8,7 +8,7 @@ on:
 
 jobs:
   goat-service:
-    runs-on: [self-hosted, goatsoft, udder]
+    runs-on: github-runner-scale-set-goatsoft-udder
     name: Goat Service CI
     steps:
       - name: Checkout
@@ -42,7 +42,7 @@ jobs:
         run: docker build -t goat-service .
 
   rental-service:
-    runs-on: [self-hosted, goatsoft, udder]
+    runs-on: github-runner-scale-set-goatsoft-udder
     name: Rental Service CI
     steps:
       - name: Checkout
@@ -74,3 +74,46 @@ jobs:
       - name: Build Docker image
         working-directory: rental-service
         run: docker build -t rental-service .
+    
+  frontend:
+    runs-on: github-runner-scale-set-goatsoft-udder
+    name: Frontend CI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Tests
+        working-directory: frontend
+        run: npm run test
+
+      - name: Check coverage
+        working-directory: frontend
+        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+
+  sonar-analysis:
+    runs-on: github-runner-scale-set-goatsoft-udder
+    name: SonarQube Analysis
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
