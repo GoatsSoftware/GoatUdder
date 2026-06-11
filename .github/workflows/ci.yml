@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   goat-service:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -17,8 +21,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: goat-service/package-lock.json
 
       - name: Install dependencies
@@ -44,6 +48,19 @@ jobs:
           docker buildx use remote-buildkit
           docker buildx inspect --bootstrap
 
+      - name: Login to Harbor
+        uses: docker/login-action@v2
+        with:
+          registry: harbor.techops.tf
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Test Harbor connectivity
+        run: |
+          echo "Testing connection to harbor.techops.tf:443"
+          nc -vz harbor.techops.tf 443 || true
+          curl -I https://harbor.techops.tf/v2/ || true
+
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v5
@@ -52,7 +69,13 @@ jobs:
           context: ./goat-service
           file: ./goat-service/Dockerfile
           platforms: linux/amd64
-          push: false
+          push: true
+          tags: |
+            harbor.techops.tf/goat-software/goat-udder-goat-service:latest
+            harbor.techops.tf/goat-software/goat-udder-goat-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
 
   rental-service:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -64,8 +87,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
           cache-dependency-path: rental-service/package-lock.json
 
       - name: Install dependencies
@@ -86,18 +109,39 @@ jobs:
 
       - name: Create Buildx builder
         run: |
-          docker buildx create --name remote-builder --driver remote tcp://buildkit.techops.tf:31234 || true
-          docker buildx use remote-builder
+          export BUILDKIT_HOST="tcp://buildkit.techops.tf:31234"
+          docker buildx create --name remote-buildkit --driver remote || true
+          docker buildx use remote-buildkit
           docker buildx inspect --bootstrap
 
-      - name: Build image (remote)
+      - name: Login to Harbor
+        uses: docker/login-action@v2
+        with:
+          registry: harbor.techops.tf
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Test Harbor connectivity
         run: |
-          docker buildx build \
-          --platform linux/amd64 \
-          --builder remote-builder \
-          -t rental-service:ci \
-          --output type=docker \
-          rental-service
+          echo "Testing connection to harbor.techops.tf:443"
+          nc -vz harbor.techops.tf 443 || true
+          curl -I https://harbor.techops.tf/v2/ || true
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          builder: remote-buildkit
+          context: ./rental-service
+          file: ./rental-service/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            harbor.techops.tf/goat-software/goat-udder-rental-service:latest
+            harbor.techops.tf/goat-software/goat-udder-rental-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
 
   frontend:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -108,18 +152,39 @@ jobs:
 
       - name: Create Buildx builder
         run: |
-          docker buildx create --name remote-builder --driver remote tcp://buildkit.techops.tf:31234 || true
-          docker buildx use remote-builder
+          export BUILDKIT_HOST="tcp://buildkit.techops.tf:31234"
+          docker buildx create --name remote-buildkit --driver remote || true
+          docker buildx use remote-buildkit
           docker buildx inspect --bootstrap
-      
-      - name: Build image (remote)
+
+      - name: Login to Harbor
+        uses: docker/login-action@v2
+        with:
+          registry: harbor.techops.tf
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Test Harbor connectivity
         run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            --builder remote-builder \
-            -t frontend:ci \
-            --output type=docker \
-            frontend
+          echo "Testing connection to harbor.techops.tf:443"
+          nc -vz harbor.techops.tf 443 || true
+          curl -I https://harbor.techops.tf/v2/ || true
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          builder: remote-buildkit
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            harbor.techops.tf/goat-software/goat-udder-frontend:latest
+            harbor.techops.tf/goat-software/goat-udder-frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
 
   sonar-analysis:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -129,7 +194,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
