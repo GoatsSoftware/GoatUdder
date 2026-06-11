@@ -40,6 +40,12 @@ jobs:
       - name: Check coverage
         working-directory: goat-service
         run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}' --coverageReporters=lcov
+      
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: goat-coverage
+          path: goat-service/coverage/lcov.info
 
       - name: Create Buildx builder
         run: |
@@ -106,6 +112,12 @@ jobs:
       - name: Tests + coverage
         working-directory: rental-service
         run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}' --coverageReporters=lcov
+      
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: rental-coverage
+          path: rental-service/coverage/lcov.info
 
       - name: Create Buildx builder
         run: |
@@ -194,7 +206,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
+
+      - name: Download goat coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: goat-coverage
+          path: goat-service/coverage
+
+      - name: Download rental coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: rental-coverage
+          path: rental-service/coverage
       - uses: SonarSource/sonarqube-scan-action@v6
         with:
           projectBaseDir: .
