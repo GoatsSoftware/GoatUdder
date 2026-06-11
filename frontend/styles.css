@@ -170,73 +170,73 @@ section h2 {
   color: #2c5f2d;
 }
 
-/* Pis Grid */
-.pis-grid {
+/* Udders Grid */
+.udders-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 30px;
 }
 
-.pad-card {
+.uddercard {
   background: white;
   border-radius: 12px;
-  padding: 25px;
+  udderding: 25px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition:
     transform 0.3s,
     box-shadow 0.3s;
 }
 
-.pad-card:hover {
+.udder-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.pad-card h3 {
+.udder-card h3 {
   font-size: 1.5rem;
   color: #2c5f2d;
   margin-bottom: 10px;
 }
 
-.pad-card .location {
+.udder-card .location {
   color: #666;
   margin-bottom: 15px;
 }
 
-.pad-card .details {
+.udder-card .details {
   margin-bottom: 15px;
 }
 
-.pad-card .details p {
+.udder-card .details p {
   margin-bottom: 5px;
 }
 
-.pad-card .price {
+.udder-card .price {
   font-size: 1.3rem;
   font-weight: 700;
   color: #97bc32;
   margin-bottom: 15px;
 }
 
-.pad-card .status {
+.udder-card .status {
   display: inline-block;
-  padding: 5px 15px;
+  udderding: 5px 15px;
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: 600;
 }
 
-.pad-card .status.available {
+.udder-card .status.available {
   background-color: #e8f5e9;
   color: #2c5f2d;
 }
 
-.pad-card .status.unavailable {
+.udder-card .status.unavailable {
   background-color: #ffebee;
   color: #c62828;
 }
 
-.pad-card .book-btn {
+.udder-card .book-btn {
   background-color: #97bc32;
   color: white;
   border: none;
@@ -249,11 +249,11 @@ section h2 {
   transition: background-color 0.3s;
 }
 
-.pad-card .book-btn:hover {
+.uddercard .book-btn:hover {
   background-color: #7da82a;
 }
 
-.pad-card .book-btn:disabled {
+.uddercard .book-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
@@ -460,7 +460,7 @@ footer {
     font-size: 1rem;
   }
 
-  .pis-grid {
+  .udders-grid {
     grid-template-columns: 1fr;
   }
 

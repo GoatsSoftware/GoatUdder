@@ -1,0 +1,2 @@
+INSERT INTO users (username, email, password_hash, role) VALUES ('albert', 'albert@example.com', '$2b$10$ORIO8PK8vKfQk48dITwAvuhFTsq6qajPFLs2dfdj85OEHjUYRJw6y', 'customer');
+SELECT id, username, email, password_hash FROM users;

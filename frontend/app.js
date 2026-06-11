@@ -1,7 +1,7 @@
 // GoatUdder Frontend Application
 // API endpoints - works both locally and via Docker nginx proxy
-const API_BASE_URL = "/api";
-const BOOKING_API_BASE_URL = "/booking-api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
+const BOOKING_API_BASE_URL = "http://127.0.0.1:8001/booking-api";
 
 // State
 let currentUser = null;
