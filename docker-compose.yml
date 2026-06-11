@@ -1,0 +1,45 @@
+services:
+  goat-service:
+    build: ./goat-service
+    ports:
+      - "5412:5412"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: goatudder
+      DB_USER: postgres
+      DB_PASSWORD: password
+      PORT: "5412"
+
+  rental-service:
+    build: ./rental-service
+    ports:
+      - "5413:5413"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: goatudder
+      DB_USER: postgres
+      DB_PASSWORD: password
+      PORT: "5413"
+
+  db:
+    image: postgres:16
+    ports:
+      - "3444:5432"
+    environment:
+      POSTGRES_DB: goatudder
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"

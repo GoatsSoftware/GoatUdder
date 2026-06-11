@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoatUdder - Location de pis de chèvres</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>GoatUdder</h1>
+    <p>Plateforme de location de pis de chèvres</p>
+  </header>
+
+  <main>
+    <section id="chèvres-disponibles">
+      <h2>Chèvres disponibles</h2>
+      <div id="goats-list"></div>
+    </section>
+
+    <section id="formulaire-location">
+      <h2>Créer une location</h2>
+      <form id="rental-form">
+        <label for="goat-search">Rechercher une chèvre :</label>
+        <input type="text" id="goat-search" placeholder="Tapez pour filtrer...">
+
+        <label for="goat-ids">Chèvres à louer :</label>
+        <select id="goat-ids" multiple required>
+        </select>
+        <span class="select-hint">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs chèvres</span>
+
+        <label for="start-date">Date de début :</label>
+        <input type="date" id="start-date" required>
+
+        <label for="end-date">Date de fin :</label>
+        <input type="date" id="end-date" required>
+
+        <button type="submit">Louer</button>
+      </form>
+      <div id="rental-result"></div>
+    </section>
+
+    <section id="locations-en-cours">
+      <h2>Locations en cours</h2>
+      <div id="active-rentals"></div>
+    </section>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
