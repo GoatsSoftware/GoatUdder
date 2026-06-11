@@ -39,18 +39,20 @@ jobs:
 
       - name: Create Buildx builder
         run: |
-          docker buildx create --name remote-builder --driver remote tcp://buildkit.techops.tf:31234 || true
-          docker buildx use remote-builder
+          export BUILDKIT_HOST="tcp://buildkit.techops.tf:31234"
+          docker buildx create --name remote-buildkit --driver remote || true
+          docker buildx use remote-buildkit
           docker buildx inspect --bootstrap
 
-      - name: Build image (remote)
-        run: |
-          docker buildx build \
-            --platform linux/amd64 \
-            --builder remote-builder \
-            -t goat-service:ci \
-            --output type=docker \
-            goat-service
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        with:
+          builder: remote-buildkit
+          context: ./goat-service
+          file: ./goat-service/Dockerfile
+          platforms: linux/amd64
+          push: false
 
   rental-service:
     runs-on: github-runner-scale-set-goatsoft-udder
