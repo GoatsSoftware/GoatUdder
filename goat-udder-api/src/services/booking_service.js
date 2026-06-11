@@ -1,11 +1,11 @@
 const BookingRepository = require('../data/repositories/booking_repository');
-const PadRepository = require('../data/repositories/pad_repository');
+const UdderRepository = require('../data/repositories/udder_repository');
 
 // Booking Service - Business logic for bookings
 class BookingService {
   constructor() {
     this.bookingRepository = new BookingRepository();
-    this.padRepository = new PadRepository();
+    this.udderRepository = new UdderRepository();
   }
 
   // Get all bookings
@@ -35,12 +35,12 @@ class BookingService {
     return bookings.map(booking => this.formatBooking(booking));
   }
 
-  // Get bookings by pad ID
-  async getBookingsByPadId(padId) {
-    if (!padId || isNaN(padId)) {
-      throw new Error('Invalid pad ID');
+  // Get bookings by udder ID
+  async getBookingsByUdderId(udderId) {
+    if (!udderId || isNaN(udderId)) {
+      throw new Error('Invalid udder ID');
     }
-    const bookings = await this.bookingRepository.findByPadId(padId);
+    const bookings = await this.bookingRepository.findByUdderId(udderId);
     return bookings.map(booking => this.formatBooking(booking));
   }
 
@@ -54,13 +54,13 @@ class BookingService {
   async createBooking(bookingData) {
     this.validateBookingData(bookingData);
 
-    // Check pad availability
-    const pad = await this.padRepository.findById(bookingData.pad_id);
-    if (!pad) {
-      throw new Error(`Pad with ID ${bookingData.pad_id} not found`);
+    // Check udder availability
+    const udder = await this.udderRepository.findById(bookingData.udder_id);
+    if (!udder) {
+      throw new Error(`Pis with ID ${bookingData.udder_id} not found`);
     }
-    if (pad.status !== 'available') {
-      throw new Error(`Pad "${pad.name}" is not available`);
+    if (udder.status !== 'available') {
+      throw new Error(`Pis "${udder.name}" n'est pas disponible`);
     }
 
     // Calculate total price
@@ -68,7 +68,7 @@ class BookingService {
       bookingData.start_date,
       bookingData.end_date
     );
-    const total_price = pad.price_per_day * days;
+    const total_price = udder.price_per_day * days;
 
     const booking = await this.bookingRepository.create({
       ...bookingData,
@@ -92,11 +92,11 @@ class BookingService {
       throw new Error('Cannot update a completed booking');
     }
 
-    // If updating status to active, verify pad is available
+    // If updating status to active, verify udder is available
     if (bookingData.status === 'active') {
-      const pad = await this.padRepository.findById(existingBooking.pad_id);
-      if (pad.status !== 'available') {
-        throw new Error(`Pad "${pad.name}" is not available`);
+      const udder = await this.udderRepository.findById(existingBooking.udder_id);
+      if (udder.status !== 'available') {
+        throw new Error(`Pis "${udder.name}" n'est pas disponible`);
       }
     }
 
@@ -140,8 +140,8 @@ class BookingService {
 
   // Validate booking data
   validateBookingData(bookingData) {
-    if (!bookingData.pad_id || isNaN(bookingData.pad_id)) {
-      throw new Error('Valid pad_id is required');
+    if (!bookingData.udder_id || isNaN(bookingData.udder_id)) {
+      throw new Error('Valid udder_id est requis');
     }
     if (!bookingData.user_id || isNaN(bookingData.user_id)) {
       throw new Error('Valid user_id is required');
@@ -181,9 +181,9 @@ class BookingService {
   formatBooking(booking) {
     return {
       id: booking.id,
-      pad_id: booking.pad_id,
-      pad_name: booking.pad_name,
-      pad_location: booking.pad_location,
+      udder_id: booking.udder_id,
+      udder_name: booking.udder_name,
+      udder_location: booking.udder_location,
       user_id: booking.user_id,
       user_name: booking.user_name,
       start_date: booking.start_date,

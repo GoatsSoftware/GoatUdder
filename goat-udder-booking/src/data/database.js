@@ -1,8 +1,12 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+const { Pool } = require("pg");
+require("dotenv").config();
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://goat:goat@localhost:5432/goatudder',
+  host: process.env.DB_HOST || "postgres",
+  port: process.env.DB_PORT || 5444,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 // Execute a query and return results
@@ -44,9 +48,9 @@ async function initializeDatabase() {
       );
     `);
 
-    console.log('Booking database initialized successfully');
+    console.log("Booking database initialized successfully");
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error("Database initialization error:", error);
   }
 }
 

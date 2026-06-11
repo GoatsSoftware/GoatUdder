@@ -47,11 +47,11 @@ class GoatController {
     }
   }
 
-  // GET /api/goats/pad/:padId - Get goats by pad ID
-  async getGoatsByPadId(req, res) {
+  // GET /api/goats/udder/:udderId - Get goats by udder ID
+  async getGoatsByUdderId(req, res) {
     try {
-      const padId = parseInt(req.params.padId);
-      const goats = await this.service.getGoatsByPadId(padId);
+      const udderId = parseInt(req.params.udderId);
+      const goats = await this.service.getGoatsByUdderId(udderId);
       res.json({
         success: true,
         data: goats,
@@ -82,15 +82,15 @@ class GoatController {
     }
   }
 
-  // GET /api/goats/pad/:padId/milk-production - Get average milk production for a pad
+  // GET /api/goats/udder/:udderId/milk-production - Get average milk production for a udder
   async getAverageMilkProduction(req, res) {
     try {
-      const padId = parseInt(req.params.padId);
-      const avg = await this.service.getAverageMilkProduction(padId);
+      const udderId = parseInt(req.params.udderId);
+      const avg = await this.service.getAverageMilkProduction(udderId);
       res.json({
         success: true,
         data: {
-          pad_id: padId,
+          udder_id: udderId,
           average_milk_production: avg
         }
       });
@@ -151,7 +151,7 @@ class GoatController {
       await this.service.deleteGoat(id);
       res.json({
         success: true,
-        message: 'Goat deleted successfully'
+        message: 'Chèvre supprimée avec succès'
       });
     } catch (error) {
       if (error.message.includes('not found')) {

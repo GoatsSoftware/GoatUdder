@@ -1,7 +1,7 @@
 {
   "name": "goat-udder-api",
   "version": "1.0.0",
-  "description": "GoatUdder API Service - Pad, User, Booking, Goat management",
+"description": "GoatUdder API Service - Pis de chèvre, User, Booking, Goat management",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

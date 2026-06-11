@@ -1,11 +1,11 @@
 const GoatRepository = require('../data/repositories/goat_repository');
-const PadRepository = require('../data/repositories/pad_repository');
+const UdderRepository = require('../data/repositories/udder_repository');
 
 // Goat Service - Business logic for goats
 class GoatService {
   constructor() {
     this.repository = new GoatRepository();
-    this.padRepository = new PadRepository();
+    this.udderRepository = new UdderRepository();
   }
 
   // Get all goats
@@ -26,16 +26,16 @@ class GoatService {
     return this.formatGoat(goat);
   }
 
-  // Get goats by pad ID
-  async getGoatsByPadId(padId) {
-    if (!padId || isNaN(padId)) {
-      throw new Error('Invalid pad ID');
+  // Get goats by udder ID
+  async getGoatsByUdderId(udderId) {
+    if (!udderId || isNaN(udderId)) {
+      throw new Error('Invalid udder ID');
     }
-    const pad = await this.padRepository.findById(padId);
-    if (!pad) {
-      throw new Error(`Pad with ID ${padId} not found`);
+    const udder = await this.udderRepository.findById(udderId);
+    if (!udder) {
+      throw new Error(`Pis with ID ${udderId} not found`);
     }
-    const goats = await this.repository.findByPadId(padId);
+    const goats = await this.repository.findByUdderId(udderId);
     return goats.map(goat => this.formatGoat(goat));
   }
 
@@ -49,10 +49,10 @@ class GoatService {
   async createGoat(goatData) {
     this.validateGoatData(goatData);
 
-    // Check pad existence
-    const pad = await this.padRepository.findById(goatData.pad_id);
-    if (!pad) {
-      throw new Error(`Pad with ID ${goatData.pad_id} not found`);
+    // Check udder existence
+    const udder = await this.udderRepository.findById(goatData.udder_id);
+    if (!udder) {
+      throw new Error(`Pis with ID ${goatData.udder_id} not found`);
     }
 
     const goat = await this.repository.create(goatData);
@@ -86,20 +86,20 @@ class GoatService {
     return true;
   }
 
-  // Get average milk production for a pad
-  async getAverageMilkProduction(padId) {
-    if (!padId || isNaN(padId)) {
-      throw new Error('Invalid pad ID');
+  // Get average milk production for a udder
+  async getAverageMilkProduction(udderId) {
+    if (!udderId || isNaN(udderId)) {
+      throw new Error('Invalid udder ID');
     }
-    const avg = await this.repository.getAverageMilkProduction(padId);
+    const avg = await this.repository.getAverageMilkProduction(udderId);
     return parseFloat(avg);
   }
 
   // Validate goat data
   validateGoatData(goatData, partial = false) {
     if (!partial) {
-      if (!goatData.pad_id || isNaN(goatData.pad_id)) {
-        throw new Error('Valid pad_id is required');
+      if (!goatData.udder_id || isNaN(goatData.udder_id)) {
+        throw new Error('Valid udder_id est requis');
       }
       if (!goatData.name || goatData.name.trim() === '') {
         throw new Error('Goat name is required');
@@ -121,9 +121,9 @@ class GoatService {
   formatGoat(goat) {
     return {
       id: goat.id,
-      pad_id: goat.pad_id,
-      pad_name: goat.pad_name,
-      pad_location: goat.pad_location,
+      udder_id: goat.udder_id,
+      udder_name: goat.udder_name,
+      udder_location: goat.udder_location,
       name: goat.name,
       breed: goat.breed,
       age: goat.age,
