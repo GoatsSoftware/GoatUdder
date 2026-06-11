@@ -47,8 +47,9 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
-            --load \
+            --builder remote-builder \
             -t goat-service:ci \
+            --output type=docker \
             goat-service
 
   rental-service:
@@ -90,10 +91,11 @@ jobs:
       - name: Build image (remote)
         run: |
           docker buildx build \
-            --platform linux/amd64 \
-            --load \
-            -t rental-service:ci \
-            rental-service
+          --platform linux/amd64 \
+          --builder remote-builder \
+          -t rental-service:ci \
+          --output type=docker \
+          rental-service
 
   frontend:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -112,8 +114,9 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
-            --load \
+            --builder remote-builder \
             -t frontend:ci \
+            --output type=docker \
             frontend
 
   sonar-analysis:
