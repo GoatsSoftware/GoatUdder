@@ -39,7 +39,7 @@ jobs:
 
       - name: Check coverage
         working-directory: goat-service
-        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}' --coverageReporters=lcov
 
       - name: Create Buildx builder
         run: |
@@ -103,9 +103,9 @@ jobs:
         working-directory: rental-service
         run: npm run test
 
-      - name: Check coverage
+      - name: Tests + coverage
         working-directory: rental-service
-        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}'
+        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}' --coverageReporters=lcov
 
       - name: Create Buildx builder
         run: |
@@ -196,6 +196,8 @@ jobs:
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
