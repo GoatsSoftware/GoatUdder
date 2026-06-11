@@ -32,8 +32,10 @@ app.get(
   goatController.isGoatAvailable.bind(goatController),
 );
 
-app.listen(PORT, () => {
-  console.log(`Goat Service running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Rental Service running on port ${PORT}`);
+  });
+}
 
 module.exports = app;

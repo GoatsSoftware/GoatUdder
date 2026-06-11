@@ -26,8 +26,10 @@ app.post(
   rentalController.completeRental.bind(rentalController),
 );
 
-app.listen(PORT, () => {
-  console.log(`Rental Service running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Rental Service running on port ${PORT}`);
+  });
+}
 
 module.exports = app;
