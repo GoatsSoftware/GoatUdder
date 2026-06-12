@@ -11,6 +11,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend-services:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -81,14 +85,46 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      - name: Test Harbor connectivity
-        run: |
-          echo "Testing connection to harbor.techops.tf:443"
-          nc -vz harbor.techops.tf 443 || true
-          curl -I https://harbor.techops.tf/v2/ || true
+      - name: Build Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          builder: remote-buildkit
+          context: ./${{ matrix.service.name }}
+          file: ./${{ matrix.service.name }}/Dockerfile
+          load: true
+          tags: local/${{ matrix.service.image }}:test
 
+      # -----------------------------
+      # SBOM GENERATION
+      # -----------------------------
+      - name: Generate SBOM
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
+          ./syft local/${{ matrix.service.image }}:test -o spdx-json > sbom.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service.name }}-sbom
+          path: sbom.json
+
+      # -----------------------------
+      # VULNERABILITY SCAN
+      # -----------------------------
+      - name: Scan vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: local/${{ matrix.service.image }}:test
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      # -----------------------------
+      # PUSH IMAGE
+      # -----------------------------
       - name: Build and push Docker image
-        id: build-and-push
+        id: push
         uses: docker/build-push-action@v5
         with:
           builder: remote-buildkit
@@ -105,46 +141,29 @@ jobs:
 
       - name: Get image digest
         run: |
-          echo "IMAGE_DIGEST=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
+          echo "IMAGE_DIGEST=${{ steps.push.outputs.digest }}" >> $GITHUB_ENV
 
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gettext jq curl
-
+      # -----------------------------
+      # COSIGN SIGN
+      # -----------------------------
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
 
-      - name: Check Cosign version
-        run: cosign version
-
-      - name: Login to Harbor for Cosign
-        run: |
-          cosign login harbor.techops.tf \
-            -u "${{ secrets.HARBOR_USERNAME }}" \
-            -p "${{ secrets.HARBOR_PASSWORD }}"
-
-      - name: Sign Docker image with Cosign
+      - name: Sign image
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          IMAGE_DIGEST: ${{ steps.build-and-push.outputs.digest }}
         run: |
           echo "$COSIGN_PRIVATE_KEY" > cosign.key
           chmod 600 cosign.key
-
-          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/${{ matrix.service.image }}@${IMAGE_DIGEST}"
-
-          echo "Signing image: $IMAGE_WITH_DIGEST"
 
           cosign sign \
             --yes \
             --key cosign.key \
             --tlog-upload=false \
-            "$IMAGE_WITH_DIGEST"
+            harbor.techops.tf/goat-software/${{ matrix.service.image }}@${{ steps.push.outputs.digest }}
 
-      - name: Cleanup keys
-        run: rm -f cosign.key
+          rm -f cosign.key
 
   frontend:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -168,14 +187,46 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
-      - name: Test Harbor connectivity
-        run: |
-          echo "Testing connection to harbor.techops.tf:443"
-          nc -vz harbor.techops.tf 443 || true
-          curl -I https://harbor.techops.tf/v2/ || true
+      - name: Build image (local)
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          builder: remote-buildkit
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          load: true
+          tags: local/goat-udder-frontend:test
 
+      # -----------------------------
+      # SBOM FRONTEND
+      # -----------------------------
+      - name: Generate SBOM
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
+          ./syft local/goat-udder-frontend:test -o spdx-json > sbom.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-sbom
+          path: sbom.json
+
+      # -----------------------------
+      # TRIVY SCAN FRONTEND
+      # -----------------------------
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: local/goat-udder-frontend:test
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      # -----------------------------
+      # PUSH
+      # -----------------------------
       - name: Build and push Docker image
-        id: build-and-push
+        id: push
         uses: docker/build-push-action@v5
         with:
           builder: remote-buildkit
@@ -192,44 +243,26 @@ jobs:
 
       - name: Get image digest
         run: |
-          echo "IMAGE_DIGEST=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
-
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gettext jq curl
+          echo "IMAGE_DIGEST=${{ steps.push.outputs.digest }}" >> $GITHUB_ENV
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
 
-      - name: Check Cosign version
-        run: cosign version
-
-      - name: Login to Harbor for Cosign
-        run: |
-          cosign login harbor.techops.tf \
-            -u "${{ secrets.HARBOR_USERNAME }}" \
-            -p "${{ secrets.HARBOR_PASSWORD }}"
-
-      - name: Sign Docker image with Cosign
+      - name: Sign image
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          IMAGE_DIGEST: ${{ steps.build-and-push.outputs.digest }}
         run: |
           echo "$COSIGN_PRIVATE_KEY" > cosign.key
           chmod 600 cosign.key
-
-          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/goat-udder-frontend@${IMAGE_DIGEST}"
 
           cosign sign \
             --yes \
             --key cosign.key \
             --tlog-upload=false \
-            "$IMAGE_WITH_DIGEST"
+            harbor.techops.tf/goat-software/goat-udder-frontend@${{ steps.push.outputs.digest }}
 
-      - name: Cleanup keys
-        run: rm -f cosign.key
+          rm -f cosign.key
 
   sonar-analysis:
     runs-on: github-runner-scale-set-goatsoft-udder
