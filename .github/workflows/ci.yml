@@ -98,7 +98,6 @@ jobs:
           builder: remote-buildkit
           context: ./${{ matrix.service.name }}
           file: ./${{ matrix.service.name }}/Dockerfile
-          load: true
           tags: local/${{ matrix.service.image }}:test
 
       # -----------------------------
@@ -211,7 +210,6 @@ jobs:
           builder: remote-buildkit
           context: ./frontend
           file: ./frontend/Dockerfile
-          load: true
           tags: local/goat-udder-frontend:test
 
       # -----------------------------
