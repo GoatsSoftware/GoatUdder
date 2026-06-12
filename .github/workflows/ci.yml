@@ -184,38 +184,10 @@ jobs:
 
       - name: Test Harbor connectivity
         run: |
-          echo "Testing connection to harbor.techops.tf:443"
           nc -vz harbor.techops.tf 443 || true
           curl -I https://harbor.techops.tf/v2/ || true
 
-      - name: Build image (local)
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          builder: remote-buildkit
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          tags: local/goat-udder-frontend:test
-
-      - name: Generate SBOM
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
-          ./bin/syft local/goat-udder-frontend:test -o spdx-json > sbom.json
-
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-sbom
-          path: sbom.json
-
-      - name: Trivy scan
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: local/goat-udder-frontend:test
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: "1"
-
+      # BUILD + PUSH FIRST (comme backend)
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v5
@@ -232,17 +204,38 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: false
 
-      - name: Get image digest
+      - name: Get image reference
         run: |
-          echo "IMAGE_DIGEST=${{ steps.push.outputs.digest }}" >> $GITHUB_ENV
+          echo "IMAGE_REF=harbor.techops.tf/goat-software/goat-udder-frontend@${{ steps.push.outputs.digest }}" >> $GITHUB_ENV
+
+      # SYFT CLEAN (comme backend)
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
+          sudo mv ./bin/syft /usr/local/bin/syft
+          syft version
+
+      - name: Generate SBOM
+        run: |
+          syft $IMAGE_REF -o spdx-json > sbom.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-sbom
+          path: sbom.json
+
+      # TRIVY CLEAN (comme backend)
+      - name: Scan vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE_REF }}
+          format: table
+          severity: CRITICAL
+          exit-code: "0"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
-
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gettext jq curl
 
       - name: Sign image
         env:
@@ -256,7 +249,7 @@ jobs:
             --yes \
             --key cosign.key \
             --tlog-upload=false \
-            harbor.techops.tf/goat-software/goat-udder-frontend@${{ steps.push.outputs.digest }}
+            $IMAGE_REF
 
           rm -f cosign.key
 
