@@ -84,6 +84,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+      
+      - name: Get image digest
+        run: |
+          echo "IMAGE_DIGEST=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext jq curl
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Check Cosign version
+        run: cosign version
+
+      - name: Login to Harbor for Cosign
+        run: |
+          cosign login harbor.techops.tf \
+            -u "${{ secrets.HARBOR_USERNAME }}" \
+            -p "${{ secrets.HARBOR_PASSWORD }}"
+
+      - name: Sign Docker image with Cosign
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          IMAGE_DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: |
+          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+          chmod 600 cosign.key
+          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/goat-udder-goat-service@${IMAGE_DIGEST}"
+          echo "Signing image: $IMAGE_WITH_DIGEST"
+          cosign sign \
+            --yes \
+            --key cosign.key \
+            --tlog-upload=false \
+            "$IMAGE_WITH_DIGEST"
+
+      - name: Cleanup keys
+        run: rm -f cosign.key
 
   rental-service:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -156,6 +196,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+      
+      - name: Get image digest
+        run: |
+          echo "IMAGE_DIGEST=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext jq curl
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Check Cosign version
+        run: cosign version
+
+      - name: Login to Harbor for Cosign
+        run: |
+          cosign login harbor.techops.tf \
+            -u "${{ secrets.HARBOR_USERNAME }}" \
+            -p "${{ secrets.HARBOR_PASSWORD }}"
+
+      - name: Sign Docker image with Cosign
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          IMAGE_DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: |
+          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+          chmod 600 cosign.key
+          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/goat-udder-rental-service@${IMAGE_DIGEST}"
+          echo "Signing image: $IMAGE_WITH_DIGEST"
+          cosign sign \
+            --yes \
+            --key cosign.key \
+            --tlog-upload=false \
+            "$IMAGE_WITH_DIGEST"
+
+      - name: Cleanup keys
+        run: rm -f cosign.key
 
   frontend:
     runs-on: github-runner-scale-set-goatsoft-udder
@@ -199,6 +279,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
+
+      - name: Get image digest
+        run: |
+          echo "IMAGE_DIGEST=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext jq curl
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Check Cosign version
+        run: cosign version
+
+      - name: Login to Harbor for Cosign
+        run: |
+          cosign login harbor.techops.tf \
+            -u "${{ secrets.HARBOR_USERNAME }}" \
+            -p "${{ secrets.HARBOR_PASSWORD }}"
+
+      - name: Sign Docker image with Cosign
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          IMAGE_DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: |
+          echo "$COSIGN_PRIVATE_KEY" > cosign.key
+          chmod 600 cosign.key
+          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/goat-udder-frontend@${IMAGE_DIGEST}"
+          echo "Signing image: $IMAGE_WITH_DIGEST"
+          cosign sign \
+            --yes \
+            --key cosign.key \
+            --tlog-upload=false \
+            "$IMAGE_WITH_DIGEST"
+
+      - name: Cleanup keys
+        run: rm -f cosign.key
 
   sonar-analysis:
     runs-on: github-runner-scale-set-goatsoft-udder
