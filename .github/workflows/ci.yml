@@ -7,15 +7,29 @@ on:
     branches: [main]
   workflow_dispatch:
 
-
 permissions:
   contents: read
   packages: write
 
 jobs:
-  goat-service:
+  backend-services:
     runs-on: github-runner-scale-set-goatsoft-udder
-    name: Goat Service CI
+    name: ${{ matrix.service.display-name }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: goat-service
+            display-name: Goat Service CI
+            image: goat-udder-goat-service
+            coverage: goat-coverage
+
+          - name: rental-service
+            display-name: Rental Service CI
+            image: goat-udder-rental-service
+            coverage: rental-coverage
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,30 +38,34 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: goat-service/package-lock.json
+          cache: npm
+          cache-dependency-path: ${{ matrix.service.name }}/package-lock.json
 
       - name: Install dependencies
-        working-directory: goat-service
+        working-directory: ${{ matrix.service.name }}
         run: npm ci
 
       - name: Lint
-        working-directory: goat-service
+        working-directory: ${{ matrix.service.name }}
         run: npm run lint
 
       - name: Tests
-        working-directory: goat-service
+        working-directory: ${{ matrix.service.name }}
         run: npm run test
 
-      - name: Check coverage
-        working-directory: goat-service
-        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}' --coverageReporters=lcov
-      
+      - name: Coverage
+        working-directory: ${{ matrix.service.name }}
+        run: |
+          npx jest \
+            --coverage \
+            --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}' \
+            --coverageReporters=lcov
+
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
-          name: goat-coverage
-          path: goat-service/coverage/lcov.info
+          name: ${{ matrix.service.coverage }}
+          path: ${{ matrix.service.name }}/coverage/lcov.info
 
       - name: Create Buildx builder
         run: |
@@ -74,17 +92,17 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           builder: remote-buildkit
-          context: ./goat-service
-          file: ./goat-service/Dockerfile
+          context: ./${{ matrix.service.name }}
+          file: ./${{ matrix.service.name }}/Dockerfile
           platforms: linux/amd64
           push: true
           tags: |
-            harbor.techops.tf/goat-software/goat-udder-goat-service:latest
-            harbor.techops.tf/goat-software/goat-udder-goat-service:${{ github.sha }}
+            harbor.techops.tf/goat-software/${{ matrix.service.image }}:latest
+            harbor.techops.tf/goat-software/${{ matrix.service.image }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false
-      
+
       - name: Get image digest
         run: |
           echo "IMAGE_DIGEST=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
@@ -114,120 +132,11 @@ jobs:
         run: |
           echo "$COSIGN_PRIVATE_KEY" > cosign.key
           chmod 600 cosign.key
-          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/goat-udder-goat-service@${IMAGE_DIGEST}"
+
+          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/${{ matrix.service.image }}@${IMAGE_DIGEST}"
+
           echo "Signing image: $IMAGE_WITH_DIGEST"
-          cosign sign \
-            --yes \
-            --key cosign.key \
-            --tlog-upload=false \
-            "$IMAGE_WITH_DIGEST"
 
-      - name: Cleanup keys
-        run: rm -f cosign.key
-
-  rental-service:
-    runs-on: github-runner-scale-set-goatsoft-udder
-    name: Rental Service CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: rental-service/package-lock.json
-
-      - name: Install dependencies
-        working-directory: rental-service
-        run: npm ci
-
-      - name: Lint
-        working-directory: rental-service
-        run: npm run lint
-
-      - name: Tests
-        working-directory: rental-service
-        run: npm run test
-
-      - name: Tests + coverage
-        working-directory: rental-service
-        run: npx jest --coverage --coverageThreshold='{"global":{"branches":80,"functions":80,"lines":80,"statements":80}}' --coverageReporters=lcov
-      
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: rental-coverage
-          path: rental-service/coverage/lcov.info
-
-      - name: Create Buildx builder
-        run: |
-          export BUILDKIT_HOST="tcp://buildkit.techops.tf:31234"
-          docker buildx create --name remote-buildkit --driver remote || true
-          docker buildx use remote-buildkit
-          docker buildx inspect --bootstrap
-
-      - name: Login to Harbor
-        uses: docker/login-action@v2
-        with:
-          registry: harbor.techops.tf
-          username: ${{ secrets.HARBOR_USERNAME }}
-          password: ${{ secrets.HARBOR_PASSWORD }}
-
-      - name: Test Harbor connectivity
-        run: |
-          echo "Testing connection to harbor.techops.tf:443"
-          nc -vz harbor.techops.tf 443 || true
-          curl -I https://harbor.techops.tf/v2/ || true
-
-      - name: Build and push Docker image
-        id: build-and-push
-        uses: docker/build-push-action@v5
-        with:
-          builder: remote-buildkit
-          context: ./rental-service
-          file: ./rental-service/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: |
-            harbor.techops.tf/goat-software/goat-udder-rental-service:latest
-            harbor.techops.tf/goat-software/goat-udder-rental-service:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: false
-      
-      - name: Get image digest
-        run: |
-          echo "IMAGE_DIGEST=${{ steps.build-and-push.outputs.digest }}" >> $GITHUB_ENV
-
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gettext jq curl
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3
-
-      - name: Check Cosign version
-        run: cosign version
-
-      - name: Login to Harbor for Cosign
-        run: |
-          cosign login harbor.techops.tf \
-            -u "${{ secrets.HARBOR_USERNAME }}" \
-            -p "${{ secrets.HARBOR_PASSWORD }}"
-
-      - name: Sign Docker image with Cosign
-        env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          IMAGE_DIGEST: ${{ steps.build-and-push.outputs.digest }}
-        run: |
-          echo "$COSIGN_PRIVATE_KEY" > cosign.key
-          chmod 600 cosign.key
-          IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/goat-udder-rental-service@${IMAGE_DIGEST}"
-          echo "Signing image: $IMAGE_WITH_DIGEST"
           cosign sign \
             --yes \
             --key cosign.key \
@@ -240,6 +149,7 @@ jobs:
   frontend:
     runs-on: github-runner-scale-set-goatsoft-udder
     name: Frontend CI
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -309,8 +219,9 @@ jobs:
         run: |
           echo "$COSIGN_PRIVATE_KEY" > cosign.key
           chmod 600 cosign.key
+
           IMAGE_WITH_DIGEST="harbor.techops.tf/goat-software/goat-udder-frontend@${IMAGE_DIGEST}"
-          echo "Signing image: $IMAGE_WITH_DIGEST"
+
           cosign sign \
             --yes \
             --key cosign.key \
@@ -323,7 +234,9 @@ jobs:
   sonar-analysis:
     runs-on: github-runner-scale-set-goatsoft-udder
     name: SonarQube Analysis
-    needs: [goat-service, rental-service, frontend]
+    needs:
+      - backend-services
+      - frontend
 
     steps:
       - uses: actions/checkout@v4
@@ -341,7 +254,9 @@ jobs:
         with:
           name: rental-coverage
           path: rental-service/coverage
-      - uses: SonarSource/sonarqube-scan-action@v6
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
         with:
           projectBaseDir: .
         env:
