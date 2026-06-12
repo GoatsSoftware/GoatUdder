@@ -106,7 +106,7 @@ jobs:
       - name: Generate SBOM
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
-          ./syft local/${{ matrix.service.image }}:test -o spdx-json > sbom.json
+          ./bin/syft local/${{ matrix.service.image }}:test -o spdx-json > sbom.json
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
@@ -218,7 +218,7 @@ jobs:
       - name: Generate SBOM
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
-          ./syft local/goat-udder-frontend:test -o spdx-json > sbom.json
+          ./bin/syft local/goat-udder-frontend:test -o spdx-json > sbom.json
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
