@@ -91,43 +91,6 @@ jobs:
           nc -vz harbor.techops.tf 443 || true
           curl -I https://harbor.techops.tf/v2/ || true
 
-      - name: Build Docker image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          builder: remote-buildkit
-          context: ./${{ matrix.service.name }}
-          file: ./${{ matrix.service.name }}/Dockerfile
-          tags: local/${{ matrix.service.image }}:test
-
-      # -----------------------------
-      # SBOM GENERATION
-      # -----------------------------
-      - name: Generate SBOM
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
-          ./bin/syft local/${{ matrix.service.image }}:test -o spdx-json > sbom.json
-
-      - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.service.name }}-sbom
-          path: sbom.json
-
-      # -----------------------------
-      # VULNERABILITY SCAN
-      # -----------------------------
-      - name: Scan vulnerabilities (Trivy)
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: local/${{ matrix.service.image }}:test
-          format: table
-          severity: CRITICAL,HIGH
-          exit-code: "1"
-
-      # -----------------------------
-      # PUSH IMAGE
-      # -----------------------------
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v5
@@ -144,18 +107,34 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: false
 
-      - name: Get image digest
+      - name: Get image reference
         run: |
-          echo "IMAGE_DIGEST=${{ steps.push.outputs.digest }}" >> $GITHUB_ENV
+          echo "IMAGE_REF=harbor.techops.tf/goat-software/${{ matrix.service.image }}@${{ steps.push.outputs.digest }}" >> $GITHUB_ENV
 
-      - name: Install tools
+      - name: Install Syft
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gettext jq curl
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
+          sudo mv ./bin/syft /usr/local/bin/syft
+          syft version
 
-      # -----------------------------
-      # COSIGN SIGN
-      # -----------------------------
+      - name: Generate SBOM
+        run: |
+          syft $IMAGE_REF -o spdx-json > sbom.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.service.name }}-sbom
+          path: sbom.json
+
+      - name: Scan vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE_REF }}
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
 
@@ -171,7 +150,7 @@ jobs:
             --yes \
             --key cosign.key \
             --tlog-upload=false \
-            harbor.techops.tf/goat-software/${{ matrix.service.image }}@${{ steps.push.outputs.digest }}
+            $IMAGE_REF
 
           rm -f cosign.key
 
@@ -212,9 +191,6 @@ jobs:
           file: ./frontend/Dockerfile
           tags: local/goat-udder-frontend:test
 
-      # -----------------------------
-      # SBOM FRONTEND
-      # -----------------------------
       - name: Generate SBOM
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
@@ -226,9 +202,6 @@ jobs:
           name: frontend-sbom
           path: sbom.json
 
-      # -----------------------------
-      # TRIVY SCAN FRONTEND
-      # -----------------------------
       - name: Trivy scan
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -237,9 +210,6 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: "1"
 
-      # -----------------------------
-      # PUSH
-      # -----------------------------
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v5
