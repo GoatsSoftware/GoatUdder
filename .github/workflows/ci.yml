@@ -85,6 +85,12 @@ jobs:
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
 
+      - name: Test Harbor connectivity
+        run: |
+          echo "Testing connection to harbor.techops.tf:443"
+          nc -vz harbor.techops.tf 443 || true
+          curl -I https://harbor.techops.tf/v2/ || true
+
       - name: Build Docker image
         id: build
         uses: docker/build-push-action@v5
@@ -143,6 +149,11 @@ jobs:
         run: |
           echo "IMAGE_DIGEST=${{ steps.push.outputs.digest }}" >> $GITHUB_ENV
 
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext jq curl
+
       # -----------------------------
       # COSIGN SIGN
       # -----------------------------
@@ -186,6 +197,12 @@ jobs:
           registry: harbor.techops.tf
           username: ${{ secrets.HARBOR_USERNAME }}
           password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Test Harbor connectivity
+        run: |
+          echo "Testing connection to harbor.techops.tf:443"
+          nc -vz harbor.techops.tf 443 || true
+          curl -I https://harbor.techops.tf/v2/ || true
 
       - name: Build image (local)
         id: build
@@ -247,6 +264,11 @@ jobs:
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext jq curl
 
       - name: Sign image
         env:
