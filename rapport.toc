@@ -1,0 +1,33 @@
+\babel@toc {french}{}\relax 
+\contentsline {chapter}{\numberline {1}Introduction}{2}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Contexte}{2}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Objectifs DevOps}{2}{section.1.2}%
+\contentsline {chapter}{\numberline {2}Architecture Logicielle}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Architecture globale}{3}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Architecture en couches (par service)}{3}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Goat Service}{4}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Rental Service}{4}{subsection.2.2.2}%
+\contentsline {section}{\numberline {2.3}Architecture Docker}{4}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Pipeline CI (Continuous Integration)}{5}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Configuration GitHub Actions}{5}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Étapes du pipeline}{7}{section.3.2}%
+\contentsline {chapter}{\numberline {4}Rapport de Tests}{8}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Tests unitaires (couche Service)}{8}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Goat Service}{8}{subsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.1.2}Rental Service}{8}{subsection.4.1.2}%
+\contentsline {section}{\numberline {4.2}Tests des Controllers (Mocks web avec Supertest)}{8}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Goat Controller}{8}{subsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.2.2}Rental Controller}{9}{subsection.4.2.2}%
+\contentsline {section}{\numberline {4.3}Tests de la couche Data (Repository)}{9}{section.4.3}%
+\contentsline {chapter}{\numberline {5}Rapport de Couverture de Code}{10}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Seuils de couverture}{10}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Résultats de couverture}{10}{section.5.2}%
+\contentsline {chapter}{\numberline {6}Rapport de Qualité}{11}{chapter.6}%
+\contentsline {section}{\numberline {6.1}SonarQube}{11}{section.6.1}%
+\contentsline {section}{\numberline {6.2}ESLint}{11}{section.6.2}%
+\contentsline {chapter}{\numberline {7}Captures d'écran des Google Labs}{12}{chapter.7}%
+\contentsline {chapter}{\numberline {8}Accès aux Ressources}{13}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Dépôt Git (GitHub)}{13}{section.8.1}%
+\contentsline {section}{\numberline {8.2}SonarQube}{13}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Harbor Registry (Images Docker)}{13}{section.8.3}%
+\contentsline {chapter}{\numberline {9}Conclusion}{14}{chapter.9}%
