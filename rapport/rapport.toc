@@ -26,8 +26,8 @@
 \contentsline {section}{\numberline {6.1}SonarQube}{11}{section.6.1}%
 \contentsline {section}{\numberline {6.2}ESLint}{12}{section.6.2}%
 \contentsline {section}{\numberline {6.3}Code coverage de JEST et tests unitaires}{12}{section.6.3}%
-\contentsline {chapter}{\numberline {7}Captures d'écran des Google Labs}{13}{chapter.7}%
-\contentsline {chapter}{\numberline {8}Accès aux Ressources}{15}{chapter.8}%
-\contentsline {section}{\numberline {8.1}Dépôt Git (GitHub)}{15}{section.8.1}%
-\contentsline {section}{\numberline {8.2}Harbor Registry (Images Docker)}{15}{section.8.2}%
-\contentsline {chapter}{\numberline {9}Conclusion}{16}{chapter.9}%
+\contentsline {chapter}{\numberline {7}Captures d'écran des Google Labs}{14}{chapter.7}%
+\contentsline {chapter}{\numberline {8}Accès aux Ressources}{16}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Dépôt Git (GitHub)}{16}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Harbor Registry (Images Docker)}{16}{section.8.2}%
+\contentsline {chapter}{\numberline {9}Conclusion}{17}{chapter.9}%
